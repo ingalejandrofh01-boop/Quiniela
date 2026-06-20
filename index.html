@@ -156,6 +156,9 @@ button{font-family:inherit}
 .team{display:flex; align-items:center; gap:10px; min-width:0}
 .team.away{flex-direction:row-reverse; text-align:right}
 .badge{flex:0 0 auto; width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-weight:700; font-size:11px; color:#fff; box-shadow:inset 0 0 0 2px rgba(255,255,255,.25)}
+.badge.flagbadge{position:relative; overflow:hidden}
+.badge.flagbadge .badge-code{position:relative; z-index:1}
+.badge.flagbadge img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:2}
 .team-name{font-weight:700; font-size:14.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
 .vs-block{text-align:center; min-width:90px}
 .vs-block .kickoff{font-family:var(--font-mono); font-size:12px; color:var(--ink-500)}
@@ -202,6 +205,10 @@ button{font-family:inherit}
 .swatch-row{display:flex; flex-wrap:wrap; gap:9px; justify-content:center}
 .swatch{width:34px;height:34px;border-radius:50%; border:2px solid transparent; cursor:pointer; transition:transform .12s ease}
 .swatch.active{border-color:var(--ink-100); transform:scale(1.12)}
+.emoji-row{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; max-width:340px; margin:0 auto}
+.emoji-btn{width:46px; height:46px; border-radius:14px; border:2px solid var(--line); background:var(--navy-800); font-size:24px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform .12s ease, border-color .12s ease}
+.emoji-btn:hover{transform:translateY(-2px)}
+.emoji-btn.active{border-color:var(--gold); background:rgba(244,183,63,.12); transform:scale(1.08)}
 .opt-btn{padding:9px 14px; border-radius:10px; border:1px solid var(--line); background:var(--navy-800); color:var(--ink-300); font-size:13px; cursor:pointer; font-weight:600}
 .opt-btn.active{background:var(--ink-100); color:var(--navy-950); border-color:var(--ink-100)}
 .opt-row{display:flex; flex-wrap:wrap; gap:8px; justify-content:center}
@@ -213,6 +220,10 @@ button{font-family:inherit}
 .auth-toggle{display:flex; gap:6px; background:var(--navy-900); padding:4px; border-radius:999px; margin:22px 0 22px}
 .auth-toggle button{flex:1; padding:10px; border:none; border-radius:999px; background:transparent; color:var(--ink-500); font-weight:700; font-size:13px; cursor:pointer}
 .auth-toggle button.active{background:var(--ink-100); color:var(--navy-950)}
+.google-btn{background:#fff; color:#1f1f1f; gap:10px}
+.google-btn:hover{background:#f3f3f3}
+.auth-divider{display:flex; align-items:center; gap:12px; margin:18px 0; color:var(--ink-600); font-size:11.5px; text-transform:uppercase; letter-spacing:.08em}
+.auth-divider::before,.auth-divider::after{content:""; flex:1; height:1px; background:var(--line)}
 
 /* ---------- bonus cards ---------- */
 .bonus-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:16px}
@@ -265,7 +276,7 @@ footer{padding:40px 20px 60px; text-align:center; color:var(--ink-600); font-siz
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
 import {
   getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-  signOut, onAuthStateChanged, updateProfile
+  signOut, onAuthStateChanged, updateProfile, GoogleAuthProvider, signInWithPopup
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 import {
   getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot,
@@ -276,23 +287,23 @@ import {
    🔧 CONFIGURA AQUÍ — lee el README para los pasos exactos
    ------------------------------------------------------------ */
 const firebaseConfig = {
-  apiKey: "REEMPLAZA_CON_TU_API_KEY",
-  authDomain: "REEMPLAZA.firebaseapp.com",
-  projectId: "REEMPLAZA",
-  storageBucket: "REEMPLAZA.appspot.com",
-  messagingSenderId: "REEMPLAZA",
-  appId: "REEMPLAZA"
+  apiKey: "AIzaSyA01K8E6DErEdRr6WGmYl6g7TjM6motQBU",
+  authDomain: "quiniela-698fa.firebaseapp.com",
+  projectId: "quiniela-698fa",
+  storageBucket: "quiniela-698fa.firebasestorage.app",
+  messagingSenderId: "718123198171",
+  appId: "1:718123198171:web:1cc71608018550a9590efe"
 };
 
 const CONFIG = {
   // UIDs de Firebase Auth que pueden usar el panel de Admin.
   // Regístrate primero en la app, copia tu UID desde Firebase
   // Console > Authentication, y pégalo aquí.
-  ADMIN_UIDS: ["REEMPLAZA_CON_TU_UID"],
+  ADMIN_UIDS: ["sHvmt3uFtydWOJWv7qV90f1w08o1"],
 
   // Token gratis de https://www.football-data.org/client/register
   // Se usa SOLO desde el panel admin para sincronizar resultados.
-  FOOTBALL_DATA_TOKEN: "REEMPLAZA_CON_TU_TOKEN",
+  FOOTBALL_DATA_TOKEN: "0265c90145754882a979159d49d483df",
 
   // Puntos de la quiniela diaria (editable)
   SCORE_EXACT: 5,      // acertar el marcador exacto
@@ -309,6 +320,10 @@ const CONFIG = {
   // Fecha límite para enviar/editar los pronósticos de bonos.
   // Por default: inicio de octavos de final.
   BONUS_LOCK: "2026-06-28T00:00:00",
+
+  // Minutos antes del silbatazo inicial en que se cierra el envío
+  // de pronósticos para cada partido.
+  LOCK_MINUTES_BEFORE: 30,
 
   APP_NAME: "Quiniela Mundial 26"
 };
@@ -327,30 +342,30 @@ const FIREBASE_READY = firebaseConfig.apiKey !== "REEMPLAZA_CON_TU_API_KEY";
    48 equipos, 12 grupos de 4, fechas oficiales por jornada.
    ============================================================ */
 const TEAMS = {
-  MEX:{name:'México',c1:'#006847',c2:'#ce1126'}, RSA:{name:'Sudáfrica',c1:'#007749',c2:'#ffb81c'},
-  KOR:{name:'Corea del Sur',c1:'#cd2e3a',c2:'#0047a0'}, CZE:{name:'Chequia',c1:'#11457e',c2:'#d7141a'},
-  CAN:{name:'Canadá',c1:'#ff0000',c2:'#a30000'}, BIH:{name:'Bosnia y Herz.',c1:'#002395',c2:'#fecb00'},
-  QAT:{name:'Catar',c1:'#8d1b3d',c2:'#5e1129'}, SUI:{name:'Suiza',c1:'#ff0000',c2:'#a30000'},
-  BRA:{name:'Brasil',c1:'#009c3b',c2:'#ffdf00'}, MAR:{name:'Marruecos',c1:'#c1272d',c2:'#006233'},
-  HAI:{name:'Haití',c1:'#00209f',c2:'#d21034'}, SCO:{name:'Escocia',c1:'#0065bd',c2:'#003a73'},
-  USA:{name:'Estados Unidos',c1:'#3c3b6e',c2:'#b22234'}, PAR:{name:'Paraguay',c1:'#d52b1e',c2:'#0038a8'},
-  AUS:{name:'Australia',c1:'#00843d',c2:'#ffcd00'}, TUR:{name:'Turquía',c1:'#e30a17',c2:'#9c0710'},
-  GER:{name:'Alemania',c1:'#000000',c2:'#dd0000'}, CUW:{name:'Curazao',c1:'#002b7f',c2:'#f9e814'},
-  CIV:{name:'Costa de Marfil',c1:'#f77f00',c2:'#009e60'}, ECU:{name:'Ecuador',c1:'#ffd100',c2:'#0072ce'},
-  NED:{name:'Países Bajos',c1:'#ae1c28',c2:'#21468b'}, JPN:{name:'Japón',c1:'#bc002d',c2:'#7a0020'},
-  SWE:{name:'Suecia',c1:'#006aa7',c2:'#fecc00'}, TUN:{name:'Túnez',c1:'#e70013',c2:'#9c000d'},
-  BEL:{name:'Bélgica',c1:'#ed2939',c2:'#fae042'}, EGY:{name:'Egipto',c1:'#ce1126',c2:'#000000'},
-  IRN:{name:'Irán',c1:'#239f40',c2:'#da0000'}, NZL:{name:'Nueva Zelanda',c1:'#000000',c2:'#2b2b2b'},
-  ESP:{name:'España',c1:'#aa151b',c2:'#f1bf00'}, CPV:{name:'Cabo Verde',c1:'#003893',c2:'#cf2027'},
-  KSA:{name:'Arabia Saudita',c1:'#006c35',c2:'#024a25'}, URU:{name:'Uruguay',c1:'#7ba4dc',c2:'#0d3a73'},
-  FRA:{name:'Francia',c1:'#0055a4',c2:'#ef4135'}, SEN:{name:'Senegal',c1:'#00853f',c2:'#fdef42'},
-  IRQ:{name:'Irak',c1:'#ce1126',c2:'#000000'}, NOR:{name:'Noruega',c1:'#ba0c2f',c2:'#00205b'},
-  ARG:{name:'Argentina',c1:'#74acdf',c2:'#3e7cc2'}, ALG:{name:'Argelia',c1:'#006233',c2:'#d21034'},
-  AUT:{name:'Austria',c1:'#ed2939',c2:'#9c1620'}, JOR:{name:'Jordania',c1:'#000000',c2:'#ce1126'},
-  POR:{name:'Portugal',c1:'#006600',c2:'#ff0000'}, COD:{name:'R.D. Congo',c1:'#007fff',c2:'#f7d618'},
-  UZB:{name:'Uzbekistán',c1:'#1eb53a',c2:'#0099b5'}, COL:{name:'Colombia',c1:'#fcd116',c2:'#003893'},
-  ENG:{name:'Inglaterra',c1:'#ce1124',c2:'#8a0c18'}, CRO:{name:'Croacia',c1:'#ff0000',c2:'#a30000'},
-  GHA:{name:'Ghana',c1:'#ce1126',c2:'#fcd116'}, PAN:{name:'Panamá',c1:'#da121a',c2:'#0038a8'}
+  MEX:{name:'México',c1:'#006847',c2:'#ce1126', iso:'mx'}, RSA:{name:'Sudáfrica',c1:'#007749',c2:'#ffb81c', iso:'za'},
+  KOR:{name:'Corea del Sur',c1:'#cd2e3a',c2:'#0047a0', iso:'kr'}, CZE:{name:'Chequia',c1:'#11457e',c2:'#d7141a', iso:'cz'},
+  CAN:{name:'Canadá',c1:'#ff0000',c2:'#a30000', iso:'ca'}, BIH:{name:'Bosnia y Herz.',c1:'#002395',c2:'#fecb00', iso:'ba'},
+  QAT:{name:'Catar',c1:'#8d1b3d',c2:'#5e1129', iso:'qa'}, SUI:{name:'Suiza',c1:'#ff0000',c2:'#a30000', iso:'ch'},
+  BRA:{name:'Brasil',c1:'#009c3b',c2:'#ffdf00', iso:'br'}, MAR:{name:'Marruecos',c1:'#c1272d',c2:'#006233', iso:'ma'},
+  HAI:{name:'Haití',c1:'#00209f',c2:'#d21034', iso:'ht'}, SCO:{name:'Escocia',c1:'#0065bd',c2:'#003a73', iso:'gb-sct'},
+  USA:{name:'Estados Unidos',c1:'#3c3b6e',c2:'#b22234', iso:'us'}, PAR:{name:'Paraguay',c1:'#d52b1e',c2:'#0038a8', iso:'py'},
+  AUS:{name:'Australia',c1:'#00843d',c2:'#ffcd00', iso:'au'}, TUR:{name:'Turquía',c1:'#e30a17',c2:'#9c0710', iso:'tr'},
+  GER:{name:'Alemania',c1:'#000000',c2:'#dd0000', iso:'de'}, CUW:{name:'Curazao',c1:'#002b7f',c2:'#f9e814', iso:'cw'},
+  CIV:{name:'Costa de Marfil',c1:'#f77f00',c2:'#009e60', iso:'ci'}, ECU:{name:'Ecuador',c1:'#ffd100',c2:'#0072ce', iso:'ec'},
+  NED:{name:'Países Bajos',c1:'#ae1c28',c2:'#21468b', iso:'nl'}, JPN:{name:'Japón',c1:'#bc002d',c2:'#7a0020', iso:'jp'},
+  SWE:{name:'Suecia',c1:'#006aa7',c2:'#fecc00', iso:'se'}, TUN:{name:'Túnez',c1:'#e70013',c2:'#9c000d', iso:'tn'},
+  BEL:{name:'Bélgica',c1:'#ed2939',c2:'#fae042', iso:'be'}, EGY:{name:'Egipto',c1:'#ce1126',c2:'#000000', iso:'eg'},
+  IRN:{name:'Irán',c1:'#239f40',c2:'#da0000', iso:'ir'}, NZL:{name:'Nueva Zelanda',c1:'#000000',c2:'#2b2b2b', iso:'nz'},
+  ESP:{name:'España',c1:'#aa151b',c2:'#f1bf00', iso:'es'}, CPV:{name:'Cabo Verde',c1:'#003893',c2:'#cf2027', iso:'cv'},
+  KSA:{name:'Arabia Saudita',c1:'#006c35',c2:'#024a25', iso:'sa'}, URU:{name:'Uruguay',c1:'#7ba4dc',c2:'#0d3a73', iso:'uy'},
+  FRA:{name:'Francia',c1:'#0055a4',c2:'#ef4135', iso:'fr'}, SEN:{name:'Senegal',c1:'#00853f',c2:'#fdef42', iso:'sn'},
+  IRQ:{name:'Irak',c1:'#ce1126',c2:'#000000', iso:'iq'}, NOR:{name:'Noruega',c1:'#ba0c2f',c2:'#00205b', iso:'no'},
+  ARG:{name:'Argentina',c1:'#74acdf',c2:'#3e7cc2', iso:'ar'}, ALG:{name:'Argelia',c1:'#006233',c2:'#d21034', iso:'dz'},
+  AUT:{name:'Austria',c1:'#ed2939',c2:'#9c1620', iso:'at'}, JOR:{name:'Jordania',c1:'#000000',c2:'#ce1126', iso:'jo'},
+  POR:{name:'Portugal',c1:'#006600',c2:'#ff0000', iso:'pt'}, COD:{name:'R.D. Congo',c1:'#007fff',c2:'#f7d618', iso:'cd'},
+  UZB:{name:'Uzbekistán',c1:'#1eb53a',c2:'#0099b5', iso:'uz'}, COL:{name:'Colombia',c1:'#fcd116',c2:'#003893', iso:'co'},
+  ENG:{name:'Inglaterra',c1:'#ce1124',c2:'#8a0c18', iso:'gb-eng'}, CRO:{name:'Croacia',c1:'#ff0000',c2:'#a30000', iso:'hr'},
+  GHA:{name:'Ghana',c1:'#ce1126',c2:'#fcd116', iso:'gh'}, PAN:{name:'Panamá',c1:'#da121a',c2:'#0038a8', iso:'pa'}
 };
 
 const GROUPS = {
@@ -421,57 +436,47 @@ function buildKnockoutMatches(){
 const ALL_MATCHES_SEED = [...buildGroupMatches(), ...buildKnockoutMatches()];
 
 /* ============================================================
-   AVATAR INTERNO — generado 100% en SVG, sin imágenes externas.
-   Config compacta {skin,hair,hairColor,jersey,face,accessory}
-   se guarda en Firestore y se renderiza igual en todos lados.
+   AVATAR INTERNO — animalitos estilo Mundial, 100% generado en
+   SVG (el emoji se dibuja como texto, sin imágenes externas).
+   Config compacta {animal,jersey,accessory} se guarda en
+   Firestore y se renderiza igual en todos lados.
    ============================================================ */
 const AVATAR_OPTS = {
-  skin:   ['#ffd9b3','#f0b683','#c98a55','#9a6238','#5c3a23'],
+  animal: ['🦁','🐯','🐻','🐼','🦊','🐺','🦝','🐨','🐵','🐶','🐱','🐰','🐸','🐧','🦅','🐙','🦈','🐢','🦓','🐘'],
   jersey: ['#e8553a','#2fa968','#3672e0','#f4b73f','#9b59d0','#1c2540','#ff6fa3','#1aa5b0'],
-  hair:   ['short','bald','curly','cap','headband','mohawk'],
-  face:   ['feliz','enfocado','grito','lentes'],
-  accessory:['ninguno','estrella','banda','audifonos']
+  accessory:['ninguno','estrella','banda','balon']
 };
 function defaultAvatar(){
-  return { skin:AVATAR_OPTS.skin[1], jersey:AVATAR_OPTS.jersey[0], hair:'short', hairColor:'#2b1d12', face:'feliz', accessory:'ninguno' };
-}
-function svgHair(cfg){
-  const c = cfg.hairColor||'#2b1d12';
-  switch(cfg.hair){
-    case 'bald': return '';
-    case 'curly': return `<path d="M14 38c-4-10 1-24 18-24s22 14 18 24c-2-9-9-15-18-15s-16 6-18 15z" fill="${c}"/>`;
-    case 'cap': return `<path d="M12 36c0-15 10-24 20-24s20 9 20 24H12z" fill="${cfg.jersey}"/><rect x="10" y="33" width="44" height="7" rx="3.5" fill="${cfg.jersey}"/><rect x="44" y="30" width="16" height="8" rx="3" fill="${cfg.jersey}"/>`;
-    case 'headband': return `<path d="M13 30c3-13 12-21 19-21s16 8 19 21" stroke="none" fill="${c}"/><rect x="11" y="26" width="42" height="8" rx="4" fill="${cfg.jersey}"/>`;
-    case 'mohawk': return `<path d="M28 6c2 10 2 16 0 24h8c-2-8-2-14 0-24-2-2-6-2-8 0z" fill="${c}"/>`;
-    default: return `<path d="M13 32c0-14 9-23 19-23s19 9 19 23c-3-6-9-11-19-11s-16 5-19 11z" fill="${c}"/>`;
-  }
-}
-function svgFace(cfg){
-  switch(cfg.face){
-    case 'enfocado': return `<path d="M22 31h7M35 31h7" stroke="#2b1d12" stroke-width="2.4" stroke-linecap="round"/><path d="M25 41q7 4 14 0" stroke="#2b1d12" stroke-width="2.4" fill="none" stroke-linecap="round"/>`;
-    case 'grito': return `<circle cx="25.5" cy="31" r="2.6" fill="#2b1d12"/><circle cx="38.5" cy="31" r="2.6" fill="#2b1d12"/><ellipse cx="32" cy="42" rx="6" ry="5" fill="#2b1d12"/>`;
-    case 'lentes': return `<rect x="18" y="27" width="13" height="9" rx="4" fill="none" stroke="#1a1a1a" stroke-width="2.4"/><rect x="33" y="27" width="13" height="9" rx="4" fill="none" stroke="#1a1a1a" stroke-width="2.4"/><path d="M31 30h2" stroke="#1a1a1a" stroke-width="2.4"/><path d="M26 41q6 3 12 0" stroke="#2b1d12" stroke-width="2.4" fill="none" stroke-linecap="round"/>`;
-    default: return `<circle cx="25.5" cy="31" r="2.6" fill="#2b1d12"/><circle cx="38.5" cy="31" r="2.6" fill="#2b1d12"/><path d="M24 40q8 7 16 0" stroke="#2b1d12" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
-  }
+  return { animal:AVATAR_OPTS.animal[0], jersey:AVATAR_OPTS.jersey[0], accessory:'ninguno' };
 }
 function svgAccessory(cfg){
   switch(cfg.accessory){
-    case 'estrella': return `<path d="M50 12l1.8 3.7 4 .6-3 2.8.7 4-3.5-1.9-3.5 1.9.7-4-3-2.8 4-.6z" fill="${'#f4b73f'}"/>`;
-    case 'banda': return `<rect x="10" y="44" width="44" height="6" fill="#fff" opacity=".85"/><rect x="10" y="44" width="44" height="2" fill="${cfg.jersey}"/>`;
-    case 'audifonos': return `<path d="M12 34a20 20 0 0140 0" stroke="#1a1a1a" stroke-width="3" fill="none"/><rect x="8" y="32" width="7" height="12" rx="3" fill="#1a1a1a"/><rect x="49" y="32" width="7" height="12" rx="3" fill="#1a1a1a"/>`;
+    case 'estrella': return `<text x="49" y="18" font-size="15" text-anchor="middle">⭐</text>`;
+    case 'banda': return `<rect x="6" y="46" width="52" height="9" fill="#fff" opacity=".92"/><rect x="6" y="46" width="52" height="3" fill="${cfg.jersey}"/>`;
+    case 'balon': return `<text x="50" y="54" font-size="16" text-anchor="middle">⚽</text>`;
     default: return '';
   }
 }
 function avatarSVG(cfg, size=64){
   cfg = Object.assign(defaultAvatar(), cfg||{});
+  const animal = cfg.animal || (cfg.face ? '🦁' : AVATAR_OPTS.animal[0]); // respaldo si viene un avatar viejo
   return `<svg viewBox="0 0 64 64" width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="32" cy="32" r="32" fill="${cfg.jersey}" opacity="0.18"/>
-    <circle cx="32" cy="40" r="17" fill="${cfg.jersey}"/>
-    <circle cx="32" cy="27" r="14.5" fill="${cfg.skin}"/>
-    ${svgFace(cfg)}
-    ${svgHair(cfg)}
+    <defs>
+      <radialGradient id="g${size}-${animal.codePointAt(0)}" cx="35%" cy="30%" r="75%">
+        <stop offset="0%" stop-color="${cfg.jersey}" stop-opacity=".55"/>
+        <stop offset="100%" stop-color="${cfg.jersey}"/>
+      </radialGradient>
+    </defs>
+    <circle cx="32" cy="32" r="32" fill="url(#g${size}-${animal.codePointAt(0)})"/>
+    <circle cx="32" cy="32" r="29.5" fill="none" stroke="#fff" stroke-opacity=".18" stroke-width="1.5"/>
+    <text x="32" y="43" font-size="34" text-anchor="middle">${animal}</text>
     ${svgAccessory(cfg)}
   </svg>`;
+}
+function randomAnimalAvatar(){
+  const animal = AVATAR_OPTS.animal[Math.floor(Math.random()*AVATAR_OPTS.animal.length)];
+  const jersey = AVATAR_OPTS.jersey[Math.floor(Math.random()*AVATAR_OPTS.jersey.length)];
+  return { animal, jersey, accessory:'ninguno' };
 }
 
 /* ============================================================
@@ -498,15 +503,23 @@ function kickoffMs(match){
   if(!match.date) return null;
   return new Date(`${match.date}T${match.time||'12:00'}:00`).getTime();
 }
-function isLocked(match){
+function lockMs(match){
   const k = kickoffMs(match);
-  if(k===null) return true; // sin fecha = bloqueado hasta que se defina
-  return Date.now() >= k;
+  if(k===null) return null;
+  return k - CONFIG.LOCK_MINUTES_BEFORE*60000;
+}
+function isLocked(match){
+  const l = lockMs(match);
+  if(l===null) return true; // sin fecha = bloqueado hasta que se defina
+  return Date.now() >= l;
 }
 function teamBadge(code, size=42){
   if(!code) return `<div class="badge" style="background:linear-gradient(135deg,#333,#555);font-size:9px">?</div>`;
   const t = TEAMS[code];
-  return `<div class="badge" style="background:linear-gradient(135deg,${t.c1},${t.c2})">${code}</div>`;
+  return `<div class="badge flagbadge" style="background:linear-gradient(135deg,${t.c1},${t.c2})">
+    <span class="badge-code">${code}</span>
+    <img src="https://flagcdn.com/w80/${t.iso}.png" alt="" loading="lazy" onerror="this.remove()">
+  </div>`;
 }
 function teamName(code){ return code ? TEAMS[code].name : 'Por definir'; }
 let toastTimer=null;
@@ -689,13 +702,13 @@ function renderMatchCard(m){
   else if(hasResult) statusPill = `<span class="pill finished">✓ Finalizado</span>`;
   else if(!locked) statusPill = `<span class="pill">⏳ Abierto</span>`;
 
-  const cd = (!locked && m.date) ? countdownParts(kickoffMs(m)-Date.now()) : null;
+  const cd = (!locked && m.date) ? countdownParts(lockMs(m)-Date.now()) : null;
 
   const scoreOrCountdown = hasResult
     ? `<div class="vs-score">${m.homeScore} – ${m.awayScore}</div>`
     : (m.date ? `<div class="countdown">
         ${cd ? `<div class="seg"><b>${cd.d}</b><span>DÍAS</span></div><div class="seg"><b>${cd.h}</b><span>HRS</span></div><div class="seg"><b>${cd.m}</b><span>MIN</span></div>` : `<div class="kickoff">En curso</div>`}
-       </div><div class="kickoff" style="margin-top:6px">${fmtDateShort(m.date)} · ${m.time||''}</div>`
+       </div><div class="kickoff" style="margin-top:6px">Cierra antes de ${fmtDateShort(m.date)} · ${m.time||''}</div>`
       : `<div class="kickoff">📌 ${m.dateHint||'Fecha por definir'}</div>`);
 
   let predictArea = '';
@@ -732,7 +745,7 @@ function renderMatchCard(m){
       <input type="number" min="0" max="30" class="score-input" data-pred-away="${m.id}" value="${myPred?myPred.awayScore:''}" placeholder="0">
       <button class="btn btn-primary btn-sm" data-send-pred="${m.id}">${myPred?'Actualizar':'Enviar'}</button>
     </div>
-    <div class="waiting-note">${sentCount} amigo${sentCount===1?'':'s'} ya enviaron su pronóstico (oculto hasta el cierre)</div>`;
+    <div class="waiting-note">${sentCount} amigo${sentCount===1?'':'s'} ya enviaron su pronóstico (oculto hasta el cierre) · se cierra ${CONFIG.LOCK_MINUTES_BEFORE} min antes del silbatazo</div>`;
   }
 
   return `<div class="card match-card">
@@ -778,22 +791,28 @@ function avatarBuilderHTML(cfg, ctx){
   cfg = Object.assign(defaultAvatar(), cfg||{});
   const row = (label, key, opts, render) => `
     <div class="builder-label">${label}</div>
-    <div class="${render==='swatch'?'swatch-row':'opt-row'}">
+    <div class="${render==='swatch'?'swatch-row':render==='emoji'?'emoji-row':'opt-row'}">
       ${opts.map(o=>{
         if(render==='swatch'){
           return `<button type="button" class="swatch ${cfg[key]===o?'active':''}" style="background:${o}" data-avk="${key}" data-avv="${o}" data-ctx="${ctx}"></button>`;
         }
+        if(render==='emoji'){
+          return `<button type="button" class="emoji-btn ${cfg[key]===o?'active':''}" data-avk="${key}" data-avv="${o}" data-ctx="${ctx}">${o}</button>`;
+        }
         return `<button type="button" class="opt-btn ${cfg[key]===o?'active':''}" data-avk="${key}" data-avv="${o}" data-ctx="${ctx}">${o}</button>`;
       }).join('')}
     </div>`;
+  const ACC_LABEL = {ninguno:'Ninguno', estrella:'⭐ Estrella', banda:'🎀 Banda', balon:'⚽ Balón'};
   return `
     <div class="avatar-stage">
       <div class="avatar-preview" id="avatar-preview-${ctx}">${avatarSVG(cfg,148)}</div>
-      ${row('Tono de piel','skin',AVATAR_OPTS.skin,'swatch')}
+      <button type="button" class="btn btn-ghost btn-sm" data-avrandom="${ctx}" style="margin-top:4px">🎲 Sorpréndeme</button>
+      ${row('Elige tu animal','animal',AVATAR_OPTS.animal,'emoji')}
       ${row('Color de playera','jersey',AVATAR_OPTS.jersey,'swatch')}
-      ${row('Peinado','hair',AVATAR_OPTS.hair,'opt')}
-      ${row('Expresión','face',AVATAR_OPTS.face,'opt')}
-      ${row('Detalle','accessory',AVATAR_OPTS.accessory,'opt')}
+      <div class="builder-label">Detalle</div>
+      <div class="opt-row">
+        ${AVATAR_OPTS.accessory.map(o=>`<button type="button" class="opt-btn ${cfg.accessory===o?'active':''}" data-avk="accessory" data-avv="${o}" data-ctx="${ctx}">${ACC_LABEL[o]}</button>`).join('')}
+      </div>
     </div>`;
 }
 
@@ -809,6 +828,11 @@ function renderAuthScreen(){
         <button data-auth-mode="login" class="${mode==='login'?'active':''}">Entrar</button>
         <button data-auth-mode="register" class="${mode==='register'?'active':''}">Registrarme</button>
       </div>
+      <button type="button" class="btn btn-ghost btn-block google-btn" id="google-btn">
+        <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 01-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.81.54-1.84.87-3.04.87-2.34 0-4.32-1.58-5.03-3.7H.96v2.33A9 9 0 009 18z"/><path fill="#FBBC05" d="M3.97 10.73A5.4 5.4 0 013.68 9c0-.6.1-1.18.29-1.73V4.94H.96A9 9 0 000 9c0 1.45.35 2.83.96 4.06l3.01-2.33z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.51.46 3.44 1.35l2.59-2.59C13.46.89 11.43 0 9 0A9 9 0 00.96 4.94l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z"/></svg>
+        Continuar con Google
+      </button>
+      <div class="auth-divider"><span>o con tu correo</span></div>
       <form id="auth-form">
         ${mode==='register' ? `
         <div class="field"><label>Apodo</label><input required id="f-name" maxlength="22" placeholder="Cómo te van a ver tus amigos"></div>
@@ -825,6 +849,16 @@ function renderAuthScreen(){
       </form>
     </div>
   </div>`;
+
+  $('#google-btn').addEventListener('click', async ()=>{
+    const errEl = $('#auth-error');
+    try{
+      await doGoogleLogin();
+    }catch(err){
+      if(errEl) errEl.textContent = friendlyAuthError(err);
+      else toast(friendlyAuthError(err));
+    }
+  });
 
   $('#auth-form').addEventListener('submit', async (e)=>{
     e.preventDefault();
@@ -854,23 +888,37 @@ function friendlyAuthError(err){
   if(code.includes('invalid-credential') || code.includes('wrong-password') || code.includes('user-not-found')) return 'Correo o contraseña incorrectos.';
   if(code.includes('weak-password')) return 'La contraseña necesita al menos 6 caracteres.';
   if(code.includes('invalid-email')) return 'Ese correo no es válido.';
+  if(code.includes('popup-closed-by-user')) return 'Cerraste la ventana de Google antes de terminar.';
+  if(code.includes('popup-blocked')) return 'Tu navegador bloqueó la ventana emergente de Google — permítela e intenta de nuevo.';
+  if(code.includes('unauthorized-domain')) return 'Este dominio aún no está autorizado en Firebase (Authentication → Settings → Authorized domains).';
+  if(code.includes('account-exists-with-different-credential')) return 'Ese correo ya tiene cuenta creada con contraseña — entra con correo y contraseña.';
   return 'Algo salió mal: ' + (err.message || err);
 }
 
 function $$(sel, root=document){ return Array.from(root.querySelectorAll(sel)); }
 
+function refreshAvatarUI(ctx, draft){
+  const prev = $(`#avatar-preview-${ctx}`);
+  if(prev) prev.innerHTML = avatarSVG(draft,148);
+  $$(`[data-ctx="${ctx}"]`).forEach(b=>{
+    if(b.dataset.avk){ b.classList.toggle('active', b.dataset.avv===draft[b.dataset.avk]); }
+  });
+}
 function bindAvatarBuilder(ctx, onChange){
   $$(`[data-ctx="${ctx}"]`).forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const draft = ctx==='auth' ? state.builderDraft : state.profileDraft;
       draft[btn.dataset.avk] = btn.dataset.avv;
-      const prev = $(`#avatar-preview-${ctx}`);
-      if(prev) prev.innerHTML = avatarSVG(draft,148);
-      $$(`[data-ctx="${ctx}"]`).forEach(b=>{
-        if(b.dataset.avk===btn.dataset.avk){ b.classList.toggle('active', b.dataset.avv===draft[btn.dataset.avk]); }
-      });
+      refreshAvatarUI(ctx, draft);
       if(onChange) onChange(draft);
     });
+  });
+  const randBtn = $(`[data-avrandom="${ctx}"]`);
+  if(randBtn) randBtn.addEventListener('click', ()=>{
+    const draft = ctx==='auth' ? state.builderDraft : state.profileDraft;
+    Object.assign(draft, randomAnimalAvatar());
+    refreshAvatarUI(ctx, draft);
+    if(onChange) onChange(draft);
   });
 }
 
@@ -883,6 +931,20 @@ async function doRegister(email, password, displayName){
 }
 async function doLogin(email, password){
   return signInWithEmailAndPassword(auth, email, password);
+}
+async function doGoogleLogin(){
+  const provider = new GoogleAuthProvider();
+  const cred = await signInWithPopup(auth, provider);
+  const user = cred.user;
+  const snap = await getDoc(doc(db,'users',user.uid));
+  if(!snap.exists()){
+    await setDoc(doc(db,'users',user.uid), {
+      displayName: user.displayName || 'Jugador',
+      avatar: randomAnimalAvatar(),
+      createdAt: Date.now()
+    });
+  }
+  return user;
 }
 async function doLogout(){ await signOut(auth); }
 
@@ -946,6 +1008,12 @@ async function adminSetKnockoutTeams(matchId, home, away, date, time){
   toast('Cruce actualizado ✓');
 }
 
+async function adminSetSchedule(matchId, date, time){
+  if(!date || !time){ toast('Pon fecha y hora'); return; }
+  await setDoc(doc(db,'matches',matchId), {date, time}, {merge:true});
+  toast('Fecha y hora actualizadas ✓');
+}
+
 async function adminSetBonusResults(results){
   await setDoc(doc(db,'meta','bonusResults'), results, {merge:true});
   toast('Resultados de bonos guardados ✓');
@@ -996,6 +1064,15 @@ async function adminSyncFromApi(){
         if(am.score && am.score.fullTime){
           fields.homeScore = am.score.fullTime.home;
           fields.awayScore = am.score.fullTime.away;
+        }
+      }
+      // hora real del partido (la API la da en UTC) convertida a la
+      // hora local de quien le dio clic a "Sincronizar"
+      if(am.utcDate){
+        const d = new Date(am.utcDate);
+        if(!isNaN(d)){
+          fields.date = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+          fields.time = String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
         }
       }
       fields.status = finished ? 'FINISHED' : (live ? 'LIVE' : 'SCHEDULED');
@@ -1243,7 +1320,7 @@ function viewAdmin(){
 
     <div class="card" style="padding:24px; margin-bottom:18px">
       <h3 style="font-family:var(--font-body); text-transform:none; letter-spacing:0">2. Sincronizar resultados (football-data.org)</h3>
-      <p class="hint">Jala resultados reales de la fase de grupos automáticamente. Requiere tu token gratis en <code>CONFIG.FOOTBALL_DATA_TOKEN</code>.</p>
+      <p class="hint">Jala resultados <strong>y horarios reales</strong> de la fase de grupos automáticamente (convierte la hora a la de tu navegador). Requiere tu token gratis en <code>CONFIG.FOOTBALL_DATA_TOKEN</code>.</p>
       <button class="btn btn-primary btn-sm" id="adm-sync">🔄 Sincronizar ahora</button>
     </div>
 
@@ -1256,6 +1333,19 @@ function viewAdmin(){
         <div class="field" style="margin-bottom:0"><label>Local</label><input type="number" min="0" class="score-input" id="adm-home-score"></div>
         <div class="field" style="margin-bottom:0"><label>Visita</label><input type="number" min="0" class="score-input" id="adm-away-score"></div>
         <button class="btn btn-ghost btn-sm" id="adm-set-score">Guardar resultado</button>
+      </div>
+    </div>
+
+    <div class="card" style="padding:24px; margin-bottom:18px">
+      <h3 style="font-family:var(--font-body); text-transform:none; letter-spacing:0">3.5 Corregir fecha y hora de un partido</h3>
+      <p class="hint">Las jornadas de grupos traen una hora aproximada — corrígela aquí con el horario real (la hora local que prefieras usar para tu grupo de amigos). El cierre de pronósticos se recalcula solo, ${CONFIG.LOCK_MINUTES_BEFORE} min antes.</p>
+      <div class="field"><label>Partido</label>
+        <select id="adm-sched-select">${matchList().filter(m=>m.home&&m.away).map(m=>`<option value="${m.id}" data-date="${m.date||''}" data-time="${m.time||''}">${m.round} — ${teamName(m.home)} vs ${teamName(m.away)}</option>`).join('')}</select>
+      </div>
+      <div style="display:flex; gap:10px; align-items:end; flex-wrap:wrap">
+        <div class="field" style="margin-bottom:0"><label>Fecha</label><input type="date" id="adm-sched-date"></div>
+        <div class="field" style="margin-bottom:0"><label>Hora</label><input type="time" id="adm-sched-time"></div>
+        <button class="btn btn-ghost btn-sm" id="adm-set-sched">Guardar fecha/hora</button>
       </div>
     </div>
 
@@ -1324,6 +1414,16 @@ function bindViewEvents(){
       const h = parseInt($('#adm-home-score').value,10), a = parseInt($('#adm-away-score').value,10);
       if(Number.isInteger(h) && Number.isInteger(a)) adminSetScore(id,h,a,'FINISHED');
       else toast('Pon un marcador válido');
+    });
+    const schedSel = $('#adm-sched-select');
+    const fillSched = ()=>{
+      const opt = schedSel.options[schedSel.selectedIndex];
+      $('#adm-sched-date').value = (opt && opt.dataset.date) || '';
+      $('#adm-sched-time').value = (opt && opt.dataset.time) || '';
+    };
+    if(schedSel){ fillSched(); schedSel.addEventListener('change', fillSched); }
+    $('#adm-set-sched').addEventListener('click', ()=>{
+      adminSetSchedule($('#adm-sched-select').value, $('#adm-sched-date').value, $('#adm-sched-time').value);
     });
     $('#adm-set-ko').addEventListener('click', ()=>{
       const id = $('#adm-ko-select').value;
