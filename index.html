@@ -127,10 +127,11 @@ button{font-family:inherit}
 .hint{color:var(--ink-500); font-size:12.5px; line-height:1.5}
 
 /* ---------- nav ---------- */
-.topnav{position:sticky; top:0; z-index:50; backdrop-filter:blur(14px); background:rgba(8,11,20,.78); border-bottom:1px solid var(--line)}
+.topnav{position:sticky; top:0; z-index:50; backdrop-filter:blur(14px); background:rgba(8,11,20,.92); border-bottom:1px solid var(--line); padding-top:env(safe-area-inset-top)}
 .topnav-inner{max-width:1080px; margin:0 auto; padding:0 16px; display:flex; align-items:center; gap:4px; overflow-x:auto; scrollbar-width:none}
 .topnav-inner::-webkit-scrollbar{display:none}
 .brand{font-family:var(--font-display); font-size:20px; letter-spacing:.02em; padding:14px 14px 14px 0; white-space:nowrap; display:flex; align-items:center; gap:8px}
+.brand-short{display:none}
 .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--wave-red); box-shadow:6px 0 0 var(--wave-green), 12px 0 0 var(--wave-blue)}
 .navtabs{display:flex; gap:2px; margin-left:auto}
 .navtab{padding:18px 14px; font-size:13px; font-weight:600; color:var(--ink-500); white-space:nowrap; cursor:pointer; border-bottom:2px solid transparent; transition:color .15s ease}
@@ -310,10 +311,26 @@ button{font-family:inherit}
 .install-txt b{font-size:13px}
 .install-txt span{font-size:11.5px; color:var(--ink-500)}
 .install-close{background:none; border:none; color:var(--ink-500); font-size:16px; cursor:pointer; padding:4px 6px; flex:0 0 auto}
+.nav-hamburger{display:none; flex:0 0 auto; width:34px; height:34px; border:none; background:transparent; cursor:pointer; flex-direction:column; align-items:center; justify-content:center; gap:5px; margin-right:4px}
+.nav-hamburger span{display:block; width:20px; height:2px; background:var(--ink-100); border-radius:2px}
+.nav-dropdown-backdrop{position:fixed; inset:0; z-index:60; background:rgba(0,0,0,.55); backdrop-filter:blur(2px)}
+.nav-dropdown{position:absolute; top:0; left:0; bottom:0; width:78%; max-width:320px; background:var(--navy-900); border-right:1px solid var(--line); padding:calc(env(safe-area-inset-top) + 18px) 8px 18px; overflow-y:auto; box-shadow:24px 0 60px -20px rgba(0,0,0,.6); animation:dropIn .22s ease}
+@keyframes dropIn{from{transform:translateX(-12px); opacity:.4} to{transform:translateX(0); opacity:1}}
+.nav-drop-item{display:flex; align-items:center; gap:14px; padding:14px 16px; border-radius:12px; font-weight:700; font-size:15px; color:var(--ink-300); cursor:pointer}
+.nav-drop-item .ico{font-size:19px; width:24px; text-align:center}
+.nav-drop-item.active{background:rgba(232,85,58,.14); color:var(--ink-100)}
+.nav-drop-item:active{background:rgba(255,255,255,.06)}
 @media(max-width:640px){
+  .nav-hamburger{display:flex}
+  .navtabs{display:none}
   .fab-share{right:16px; bottom:18px; width:52px; height:52px}
   .fab-ico{font-size:21px}
   .install-txt span{display:none}
+  .topnav-inner{padding:0 10px}
+  .nav-avatar{width:30px; height:30px; margin-left:4px}
+  .brand{font-size:14px; padding-right:4px}
+  .brand .brand-full{display:none}
+  .brand .brand-short{display:inline}
 }
 footer{padding:40px 20px 60px; text-align:center; color:var(--ink-600); font-size:12px}
 .footer-credit{display:block; margin-top:10px; padding-top:10px; border-top:1px solid var(--line); font-size:11px; letter-spacing:.04em; color:var(--ink-600)}
@@ -757,6 +774,11 @@ function todayStr(){
   const d = new Date();
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
+function tomorrowStr(){
+  const d = new Date();
+  d.setDate(d.getDate()+1);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
 function fmtDateLong(dateStr){
   if(!dateStr) return 'Por definir';
   const [y,m,d] = dateStr.split('-').map(Number);
@@ -946,7 +968,9 @@ function waveDivider(){
    ============================================================ */
 function viewHoy(){
   const today = todayStr();
+  const tomorrow = tomorrowStr();
   const todays = matchList().filter(m=>m.date===today).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+  const tomorrows = matchList().filter(m=>m.date===tomorrow).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
   return `
   <div class="wrap section">
     <div class="section-head">
@@ -954,6 +978,14 @@ function viewHoy(){
     </div>
     ${todays.length ? `<div class="match-grid">${todays.map(renderMatchCard).join('')}</div>` :
       `<div class="card empty-state"><div class="e">🗓️</div>No hay partidos programados para hoy.<br><button class="btn btn-ghost btn-sm" style="margin-top:14px" data-goto="calendario">Ver calendario completo</button></div>`}
+  </div>
+  ${waveDivider()}
+  <div class="wrap section">
+    <div class="section-head">
+      <div><h2>Mañana juega</h2><div class="sub">${fmtDateLong(tomorrow)} · adelántate y manda tu pronóstico con tiempo</div></div>
+    </div>
+    ${tomorrows.length ? `<div class="match-grid">${tomorrows.map(renderMatchCard).join('')}</div>` :
+      `<div class="card empty-state"><div class="e">😴</div>Mañana no hay partidos programados.</div>`}
   </div>`;
 }
 
@@ -1094,13 +1126,22 @@ function renderShell(){
   $('#app').innerHTML = `
     <nav class="topnav">
       <div class="topnav-inner">
-        <div class="brand"><span class="dot"></span> Quiniela 26</div>
+        <button type="button" class="nav-hamburger" id="nav-hamburger-btn" aria-label="Abrir menú">
+          <span></span><span></span><span></span>
+        </button>
+        <div class="brand"><span class="dot"></span> <span class="brand-full">Quiniela 26</span><span class="brand-short">Q26</span></div>
         <div class="navtabs" id="navtabs">
-          ${tabs.map(t=>`<div class="navtab ${state.view===t.key?'active':''}" data-view="${t.key}"><span class="ico">${t.ico}</span>${t.label}</div>`).join('')}
+          ${tabs.map(t=>`<div class="navtab ${state.view===t.key?'active':''}" data-view="${t.key}"><span class="ico">${t.ico}</span><span class="navtab-label">${t.label}</span></div>`).join('')}
         </div>
         <div class="nav-avatar" id="nav-avatar-btn" title="${profile.displayName}">${avatarSVG(profile.avatar,36, myGeneralRank())}</div>
       </div>
     </nav>
+    ${state.navMenuOpen ? `
+    <div class="nav-dropdown-backdrop" id="nav-dropdown-backdrop">
+      <div class="nav-dropdown" id="nav-dropdown" onclick="event.stopPropagation()">
+        ${tabs.map(t=>`<div class="nav-drop-item ${state.view===t.key?'active':''}" data-view="${t.key}"><span class="ico">${t.ico}</span>${t.label}</div>`).join('')}
+      </div>
+    </div>` : ''}
     ${showInstallBanner ? `
     <div class="install-banner" id="install-banner">
       <span class="install-ico">📲</span>
@@ -1120,8 +1161,10 @@ function renderShell(){
       <span class="fab-ico">📤</span>
     </button>
   `;
-  $$('.navtab').forEach(t=>t.addEventListener('click', ()=>{ state.view = t.dataset.view; render(); }));
-  $('#nav-avatar-btn').addEventListener('click', ()=>{ state.view='perfil'; render(); });
+  $$('.navtab, .nav-drop-item').forEach(t=>t.addEventListener('click', ()=>{ state.view = t.dataset.view; state.navMenuOpen=false; render(); }));
+  $('#nav-avatar-btn').addEventListener('click', ()=>{ state.view='perfil'; state.navMenuOpen=false; render(); });
+  const hamBtn = $('#nav-hamburger-btn'); if(hamBtn) hamBtn.addEventListener('click', ()=>{ state.navMenuOpen=!state.navMenuOpen; render(); });
+  const dropBackdrop = $('#nav-dropdown-backdrop'); if(dropBackdrop) dropBackdrop.addEventListener('click', ()=>{ state.navMenuOpen=false; render(); });
   const instBtn = $('#install-btn'); if(instBtn) instBtn.addEventListener('click', triggerInstall);
   const instDismiss = $('#install-dismiss'); if(instDismiss) instDismiss.addEventListener('click', ()=>{ markSeen('qm26_install_dismissed','x'); render(); });
   $('#fab-share-btn').addEventListener('click', shareTodayToWhatsApp);
@@ -1569,6 +1612,7 @@ const state = {
   lbTab:'diaria',
   builderDraft:null,
   canInstall:false,
+  navMenuOpen:false,
 };
 let unsubs = [];
 function clearListeners(){ unsubs.forEach(u=>u&&u()); unsubs=[]; }
