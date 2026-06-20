@@ -240,6 +240,44 @@ button{font-family:inherit}
 .day-group-label .line{flex:1; height:1px; background:var(--line)}
 .empty-state{text-align:center; padding:50px 20px; color:var(--ink-500)}
 .empty-state .e{font-size:36px; margin-bottom:10px}
+.wrapped-box{margin-top:28px; padding-top:22px; border-top:1px dashed var(--line)}
+.wrapped-preview{margin-top:16px; text-align:center}
+.wrapped-preview canvas{width:100%; max-width:280px; border-radius:18px; border:1px solid var(--line); box-shadow:var(--shadow-deep)}
+.bracket-scroll{overflow-x:auto; padding-bottom:14px; margin:0 -20px; padding-left:20px; padding-right:20px}
+.bracket-grid{display:flex; gap:18px; min-width:max-content}
+.bracket-col{width:188px; flex:0 0 auto; border-left:2px solid var(--col-accent,var(--line)); padding-left:12px}
+.bracket-col-label{font-family:var(--font-display); font-size:15px; color:var(--ink-300); margin-bottom:12px; letter-spacing:.03em}
+.bracket-col-matches{display:flex; flex-direction:column; gap:14px}
+.bracket-slot{display:block; width:100%; text-align:left; background:var(--navy-800); border:1px solid var(--line); border-radius:12px; padding:8px 10px; cursor:pointer; transition:border-color .15s ease, transform .15s ease}
+.bracket-slot:hover{border-color:var(--wave-blue); transform:translateY(-1px)}
+.bslot-team{display:flex; align-items:center; gap:7px; padding:3px 0; font-size:11.5px; color:var(--ink-300)}
+.bslot-team span{flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.bslot-team b{font-size:13px; color:var(--ink-100)}
+.bslot-team.winner{color:var(--ink-100); font-weight:700}
+.bslot-team.winner b{color:var(--wave-green)}
+.bslot-mypred{font-size:9.5px; color:var(--gold); margin-top:4px; font-family:var(--font-mono)}
+.teams-board{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:14px}
+.tboard-group{background:var(--navy-800); border:1px solid var(--line); border-radius:var(--radius-md); padding:14px}
+.tboard-glabel{font-family:var(--font-display); font-size:14px; color:var(--ink-500); margin-bottom:10px; letter-spacing:.03em}
+.tboard-flags{display:flex; flex-direction:column; gap:8px}
+.tboard-flag{display:flex; align-items:center; gap:8px; position:relative; transition:opacity .2s ease}
+.tboard-flag .badge{width:26px; height:26px; font-size:7px}
+.tboard-name{font-family:var(--font-mono); font-size:11px; color:var(--ink-300); flex:1}
+.tboard-flag.st-eliminado{opacity:.32; filter:grayscale(1)}
+.tboard-flag.st-clasificado .badge{box-shadow:0 0 0 2px var(--wave-green), 0 0 10px rgba(47,169,104,.5)}
+.tboard-check{color:var(--wave-green); font-weight:700; font-size:13px}
+.tboard-x{color:var(--ink-600); font-weight:700; font-size:13px}
+.tboard-legend{display:flex; gap:18px; flex-wrap:wrap; margin-top:16px; font-size:11.5px; color:var(--ink-500)}
+.tboard-legend .dot{display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px}
+.dot-alive{background:var(--wave-green)}
+.dot-pending{background:var(--ink-600)}
+.dot-out{background:#444; opacity:.6}
+.reveal-card{padding:30px 24px; text-align:center; margin-bottom:22px; border:1px solid var(--gold-dim); background:linear-gradient(160deg,rgba(244,183,63,.14),var(--navy-900)); animation:revealPop .6s cubic-bezier(.2,1.4,.4,1)}
+.reveal-confetti-emoji{font-size:40px; animation:revealBounce 1.4s ease-in-out infinite}
+.reveal-title{font-family:var(--font-display); font-size:30px; color:var(--gold); margin-top:6px}
+.reveal-sub{color:var(--ink-300); font-size:13.5px; margin-top:4px}
+@keyframes revealPop{0%{transform:scale(.7) translateY(20px); opacity:0}60%{transform:scale(1.04) translateY(-4px); opacity:1}100%{transform:scale(1) translateY(0)}}
+@keyframes revealBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 .toast{position:fixed; bottom:22px; left:50%; transform:translateX(-50%) translateY(120%); background:var(--ink-100); color:var(--navy-950); padding:13px 22px; border-radius:999px; font-weight:700; font-size:13.5px; z-index:999; transition:transform .35s cubic-bezier(.2,.9,.3,1.2); box-shadow:var(--shadow-deep)}
 .toast.show{transform:translateX(-50%) translateY(0)}
 footer{padding:40px 20px 60px; text-align:center; color:var(--ink-600); font-size:12px}
@@ -248,11 +286,26 @@ footer{padding:40px 20px 60px; text-align:center; color:var(--ink-600); font-siz
 .loading-screen{min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; color:var(--ink-500); font-family:var(--font-mono); font-size:13px}
 
 @media(max-width:640px){
-  .match-teams{grid-template-columns:1fr auto 1fr}
-  .team-name{font-size:12.5px}
-  .badge{width:34px;height:34px;font-size:9.5px}
+  .match-teams{grid-template-columns:minmax(0,1fr) minmax(64px,86px) minmax(0,1fr); gap:6px}
+  .team{gap:6px}
+  .team-name{font-size:11.5px}
+  .badge{width:30px;height:30px;font-size:8px}
+  .vs-block{min-width:0}
+  .vs-score{font-size:19px}
+  .countdown{gap:3px}
+  .countdown .seg{min-width:25px; padding:4px 2px}
+  .countdown .seg b{font-size:11px}
+  .countdown .seg span{font-size:5.5px}
+  .vs-block .kickoff{font-size:8.5px; line-height:1.3; word-break:break-word}
+  .match-meta{font-size:10px; gap:6px}
+  .predict-row{flex-wrap:wrap}
   .hero-inner{padding-top:96px}
   .lb-row{grid-template-columns:24px 1fr auto; padding:12px 14px; gap:10px}
+}
+@media(max-width:380px){
+  .match-teams{grid-template-columns:minmax(0,1fr) minmax(54px,70px) minmax(0,1fr)}
+  .team-name{font-size:10.5px}
+  .badge{width:26px;height:26px;font-size:7px}
 }
 </style>
 </head>
@@ -457,27 +510,161 @@ function svgAccessory(cfg){
     default: return '';
   }
 }
-function avatarSVG(cfg, size=64){
+function avatarSVG(cfg, size=64, rank=null){
   cfg = Object.assign(defaultAvatar(), cfg||{});
   const animal = cfg.animal || (cfg.face ? '🦁' : AVATAR_OPTS.animal[0]); // respaldo si viene un avatar viejo
+  const uid = `${size}-${animal.codePointAt(0)}-${rank||0}`;
+  let ring = '';
+  let crown = '';
+  if(rank===1){
+    ring = `<circle cx="32" cy="32" r="30.5" fill="none" stroke="url(#rgGold${uid})" stroke-width="3"/>`;
+    crown = `<text x="32" y="9" font-size="15" text-anchor="middle">👑</text>`;
+  } else if(rank===2){
+    ring = `<circle cx="32" cy="32" r="30.5" fill="none" stroke="#cfd6e6" stroke-width="2.5"/>`;
+  } else if(rank===3){
+    ring = `<circle cx="32" cy="32" r="30.5" fill="none" stroke="#cd8a52" stroke-width="2.5"/>`;
+  }
   return `<svg viewBox="0 0 64 64" width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
     <defs>
-      <radialGradient id="g${size}-${animal.codePointAt(0)}" cx="35%" cy="30%" r="75%">
+      <radialGradient id="g${uid}" cx="35%" cy="30%" r="75%">
         <stop offset="0%" stop-color="${cfg.jersey}" stop-opacity=".55"/>
         <stop offset="100%" stop-color="${cfg.jersey}"/>
       </radialGradient>
+      <linearGradient id="rgGold${uid}" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#f4b73f"/><stop offset="100%" stop-color="#e8553a"/>
+      </linearGradient>
     </defs>
-    <circle cx="32" cy="32" r="32" fill="url(#g${size}-${animal.codePointAt(0)})"/>
+    <circle cx="32" cy="32" r="32" fill="url(#g${uid})"/>
     <circle cx="32" cy="32" r="29.5" fill="none" stroke="#fff" stroke-opacity=".18" stroke-width="1.5"/>
     <text x="32" y="43" font-size="34" text-anchor="middle">${animal}</text>
     ${svgAccessory(cfg)}
+    ${ring}
+    ${crown}
   </svg>`;
 }
 function randomAnimalAvatar(){
   const animal = AVATAR_OPTS.animal[Math.floor(Math.random()*AVATAR_OPTS.animal.length)];
+
   const jersey = AVATAR_OPTS.jersey[Math.floor(Math.random()*AVATAR_OPTS.jersey.length)];
   return { animal, jersey, accessory:'ninguno' };
 }
+
+/* ============================================================
+   "WRAPPED" — tarjeta resumen descargable, dibujada en canvas
+   (sin librerías externas: el avatar SVG se convierte a imagen
+   con un data URL y se compone a mano junto con el texto).
+   ============================================================ */
+function svgToImage(svgString){
+  return new Promise((resolve,reject)=>{
+    const img = new Image();
+    img.onload = ()=>resolve(img);
+    img.onerror = reject;
+    img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgString)));
+  });
+}
+function wrappedStats(uid){
+  const gb = computeGeneralBoard();
+  const idx = gb.findIndex(r=>r.uid===uid);
+  const mine = gb[idx] || {total:0, daysWon:0};
+  const myPreds = Object.values(state.predictions).filter(p=>p.uid===uid);
+  let exact=0, result=0, withResult=0;
+  const teamVotes = {};
+  myPreds.forEach(p=>{
+    const m = state.matches[p.matchId]; if(!m) return;
+    if(m.home && m.away){
+      const fav = p.homeScore>p.awayScore ? m.home : (p.awayScore>p.homeScore ? m.away : null);
+      if(fav) teamVotes[fav] = (teamVotes[fav]||0)+1;
+    }
+    if(m.homeScore===null || m.homeScore===undefined) return;
+    withResult++;
+    const pts = scoreFor(p, m);
+    if(pts===CONFIG.SCORE_EXACT) exact++;
+    else if(pts===CONFIG.SCORE_RESULT) result++;
+  });
+  const favTeam = Object.entries(teamVotes).sort((a,b)=>b[1]-a[1])[0];
+  return {
+    rank: idx===-1?null:idx+1, total: mine.total, daysWon: mine.daysWon,
+    predsCount: myPreds.length, exact, result, withResult,
+    accuracy: withResult ? Math.round((exact+result)/withResult*100) : 0,
+    favTeam: favTeam ? favTeam[0] : null
+  };
+}
+async function drawWrappedCard(canvas, uid){
+  const W=720, H=1280;
+  canvas.width=W; canvas.height=H;
+  const ctx = canvas.getContext('2d');
+  const profile = state.users[uid] || {displayName:'Jugador', avatar:defaultAvatar()};
+  const s = wrappedStats(uid);
+
+  // fondo
+  const bgGrad = ctx.createLinearGradient(0,0,W,H);
+  bgGrad.addColorStop(0,'#0d1220'); bgGrad.addColorStop(1,'#080b14');
+  ctx.fillStyle = bgGrad; ctx.fillRect(0,0,W,H);
+  function blob(x,y,r,rgb){
+    const g = ctx.createRadialGradient(x,y,0,x,y,r);
+    g.addColorStop(0, `rgba(${rgb},.30)`); g.addColorStop(1, `rgba(${rgb},0)`);
+    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+  }
+  blob(90,80,260,'54,114,224'); blob(W-80,160,220,'232,85,58'); blob(W-100,H-160,260,'47,169,104');
+
+  ctx.textAlign='center';
+  ctx.fillStyle = '#f4b73f';
+  ctx.font = '600 20px monospace';
+  ctx.fillText('Q U I N I E L A   M U N D I A L   2 6', W/2, 96);
+
+  // avatar
+  try{
+    const img = await svgToImage(avatarSVG(profile.avatar, 256, s.rank));
+    ctx.save();
+    ctx.beginPath(); ctx.arc(W/2, 280, 118, 0, Math.PI*2); ctx.closePath(); ctx.clip();
+    ctx.drawImage(img, W/2-128, 280-128, 256,256);
+    ctx.restore();
+  }catch(e){ console.warn('avatar wrapped', e); }
+
+  ctx.fillStyle = '#f6f5f1';
+  ctx.font = '400 54px Anton, sans-serif';
+  ctx.fillText((profile.displayName||'Jugador').toUpperCase(), W/2, 470);
+  ctx.fillStyle = '#8891ad';
+  ctx.font = '15px monospace';
+  ctx.fillText('TU MUNDIAL HASTA AHORA', W/2, 502);
+
+  // stats grid
+  const stats = [
+    [s.rank? `#${s.rank}` : '–', 'LUGAR GENERAL'],
+    [String(s.total), 'PUNTOS TOTALES'],
+    [String(s.daysWon), 'DÍAS GANADOS'],
+    [String(s.exact), 'MARCADORES EXACTOS'],
+    [String(s.predsCount), 'PRONÓSTICOS'],
+    [s.accuracy+'%', 'PRECISIÓN'],
+  ];
+  const gx = [W*0.27, W*0.5, W*0.73];
+  const gy = [610, 760];
+  stats.forEach((st,i)=>{
+    const x = gx[i%3], y = gy[Math.floor(i/3)];
+    ctx.fillStyle = '#f4b73f'; ctx.font = '400 50px monospace';
+    ctx.fillText(st[0], x, y);
+    ctx.fillStyle = '#8891ad'; ctx.font = '12px Inter, sans-serif';
+    ctx.fillText(st[1], x, y+26);
+  });
+
+  if(s.favTeam){
+    ctx.fillStyle = '#c7cce0'; ctx.font = '16px Inter, sans-serif';
+    ctx.fillText(`Le vas más seguido a: ${teamName(s.favTeam)}`, W/2, 880);
+  }
+
+  // wave divider
+  ctx.strokeStyle = '#e8553a'; ctx.lineWidth=3; ctx.beginPath();
+  for(let x=0;x<=W;x+=8){ const y=950+Math.sin(x/40)*10; x===0?ctx.moveTo(x,y):ctx.lineTo(x,y); } ctx.stroke();
+  ctx.strokeStyle = '#2fa968'; ctx.beginPath();
+  for(let x=0;x<=W;x+=8){ const y=966+Math.sin(x/40+1)*10; x===0?ctx.moveTo(x,y):ctx.lineTo(x,y); } ctx.stroke();
+  ctx.strokeStyle = '#3672e0'; ctx.beginPath();
+  for(let x=0;x<=W;x+=8){ const y=982+Math.sin(x/40+2)*10; x===0?ctx.moveTo(x,y):ctx.lineTo(x,y); } ctx.stroke();
+
+  ctx.fillStyle = '#646e8f'; ctx.font = '13px monospace';
+  ctx.fillText('Canadá · México · Estados Unidos 2026', W/2, 1080);
+  ctx.fillText(new Date().toLocaleDateString('es-MX',{day:'numeric',month:'long'}), W/2, 1104);
+}
+
 
 /* ============================================================
    UTILIDADES
@@ -530,6 +717,60 @@ function toast(msg){
   clearTimeout(toastTimer);
   toastTimer = setTimeout(()=>el.classList.remove('show'), 2600);
 }
+
+/* ============================================================
+   CONFETI — canvas ligero, sin librerías externas
+   ============================================================ */
+const CONFETTI_COLORS = ['#e8553a','#2fa968','#3672e0','#f4b73f','#ff6fa3'];
+function confettiBurst(durationMs=2400, count=110){
+  const canvas = document.createElement('canvas');
+  canvas.style.cssText = 'position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:9999';
+  document.body.appendChild(canvas);
+  const ctx = canvas.getContext('2d');
+  function resize(){ canvas.width = innerWidth; canvas.height = innerHeight; }
+  resize();
+  const pieces = Array.from({length:count}, ()=>({
+    x: Math.random()*canvas.width,
+    y: -20 - Math.random()*canvas.height*0.4,
+    vx: (Math.random()-.5)*2.4,
+    vy: 2 + Math.random()*3.2,
+    size: 5 + Math.random()*6,
+    rot: Math.random()*360,
+    vrot: (Math.random()-.5)*14,
+    color: CONFETTI_COLORS[Math.floor(Math.random()*CONFETTI_COLORS.length)],
+    shape: Math.random()<.5?'rect':'circle'
+  }));
+  const start = performance.now();
+  function frame(now){
+    const elapsed = now-start;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    pieces.forEach(p=>{
+      p.x += p.vx; p.y += p.vy; p.vy += 0.045; p.rot += p.vrot;
+      ctx.save();
+      ctx.translate(p.x,p.y); ctx.rotate(p.rot*Math.PI/180);
+      ctx.fillStyle = p.color;
+      ctx.globalAlpha = Math.max(0, 1 - elapsed/durationMs);
+      if(p.shape==='rect') ctx.fillRect(-p.size/2,-p.size/3,p.size,p.size*0.62);
+      else { ctx.beginPath(); ctx.arc(0,0,p.size/2,0,Math.PI*2); ctx.fill(); }
+      ctx.restore();
+    });
+    if(elapsed < durationMs){ requestAnimationFrame(frame); }
+    else { canvas.remove(); }
+  }
+  requestAnimationFrame(frame);
+  window.addEventListener('resize', resize, {once:true});
+}
+
+// Marca cosas como "ya vistas" en este navegador, para no repetir
+// la celebración cada vez que se recarga la página.
+function seenSet(key){
+  try{ return new Set(JSON.parse(localStorage.getItem(key)||'[]')); }catch(e){ return new Set(); }
+}
+function markSeen(key, id){
+  const s = seenSet(key); s.add(id);
+  try{ localStorage.setItem(key, JSON.stringify([...s])); }catch(e){}
+}
+
 function scoreFor(pred, match){
   if(match.homeScore===null || match.homeScore===undefined || !pred) return null;
   if(pred.homeScore===match.homeScore && pred.awayScore===match.awayScore) return CONFIG.SCORE_EXACT;
@@ -577,6 +818,33 @@ function viewInicio(){
     </div>
     ${todays.length ? `<div class="match-grid">${todays.slice(0,3).map(renderMatchCard).join('')}</div>`
       : `<div class="card empty-state"><div class="e">⚽</div>Hoy no hay partidos programados.${next?` El siguiente es <strong>${teamName(next.home)} vs ${teamName(next.away)}</strong> el ${fmtDateShort(next.date)}.`:''}</div>`}
+  </div>
+  ${waveDivider()}
+  <div class="wrap section">
+    <div class="section-head"><h2>Equipos en pie</h2><div class="sub">Quién sigue vivo en el torneo, grupo por grupo</div></div>
+    <div class="teams-board">
+      ${Object.keys(GROUPS).map(g=>`
+        <div class="tboard-group">
+          <div class="tboard-glabel">Grupo ${g}</div>
+          <div class="tboard-flags">
+            ${GROUPS[g].map(code=>{
+              const st = teamStatus(code);
+              return `<div class="tboard-flag st-${st}" title="${teamName(code)}">
+                ${teamBadge(code,34)}
+                <span class="tboard-name">${code}</span>
+                ${st==='eliminado'?'<span class="tboard-x">✕</span>':''}
+                ${st==='clasificado'?'<span class="tboard-check">✓</span>':''}
+              </div>`;
+            }).join('')}
+          </div>
+        </div>
+      `).join('')}
+    </div>
+    <div class="tboard-legend">
+      <span><i class="dot dot-alive"></i> En juego / clasificado</span>
+      <span><i class="dot dot-pending"></i> Por definir (depende de otros grupos)</span>
+      <span><i class="dot dot-out"></i> Eliminado</span>
+    </div>
   </div>
   ${waveDivider()}
   <div class="wrap section">
@@ -642,10 +910,53 @@ function viewCalendario(){
   </div>`;
 }
 
+/* ============================================================
+   VISTA: BRACKET (eliminatoria visual)
+   ============================================================ */
+const KO_ROUNDS = [
+  {key:'r32', label:'16avos'}, {key:'r16', label:'Octavos'}, {key:'qf', label:'Cuartos'},
+  {key:'sf', label:'Semifinal'}, {key:'p3', label:'3er Lugar'}, {key:'final', label:'🏆 Final'}
+];
+function roundKeyOf(matchId){ return matchId.split('-')[1]; }
+function bracketSlotHTML(m){
+  const has = m.homeScore!==null && m.homeScore!==undefined;
+  const myPred = state.user ? predFor(m.id, state.user.uid) : null;
+  const homeWin = has && m.homeScore>m.awayScore;
+  const awayWin = has && m.awayScore>m.homeScore;
+  return `<button type="button" class="bracket-slot" data-bracket-goto="${m.id}">
+    <div class="bslot-team ${homeWin?'winner':''}">${teamBadge(m.home,22)}<span>${m.home||'???'}</span><b class="mono">${has?m.homeScore:''}</b></div>
+    <div class="bslot-team ${awayWin?'winner':''}">${teamBadge(m.away,22)}<span>${m.away||'???'}</span><b class="mono">${has?m.awayScore:''}</b></div>
+    ${myPred && !has ? `<div class="bslot-mypred">Tú: ${myPred.homeScore}-${myPred.awayScore}</div>` : ''}
+  </button>`;
+}
+function viewBracket(){
+  const ko = matchList().filter(m=>m.phase==='knockout');
+  const cols = KO_ROUNDS.map(r=>({
+    ...r,
+    matches: ko.filter(m=>roundKeyOf(m.id)===r.key).sort((a,b)=>a.id.localeCompare(b.id, undefined, {numeric:true}))
+  }));
+  return `
+  <div class="wrap section">
+    <div class="section-head"><h2>Bracket de eliminatoria</h2><div class="sub">Toca un cruce para ir a pronosticarlo · se va llenando conforme termina la fase de grupos</div></div>
+    <div class="bracket-scroll">
+      <div class="bracket-grid">
+        ${cols.map((col,ci)=>`
+          <div class="bracket-col" style="--col-accent:${['var(--wave-red)','var(--wave-green)','var(--wave-blue)','var(--gold)','var(--wave-red)','var(--gold)'][ci]}">
+            <div class="bracket-col-label">${col.label}</div>
+            <div class="bracket-col-matches">${col.matches.map(bracketSlotHTML).join('')}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+
 const NAV_ITEMS = [
   {key:'inicio', label:'Inicio', ico:'🏠'},
   {key:'hoy', label:'Hoy', ico:'📅'},
   {key:'calendario', label:'Calendario', ico:'🗓️'},
+  {key:'bracket', label:'Bracket', ico:'🏟️'},
   {key:'clasificacion', label:'Clasificación', ico:'🏆'},
   {key:'bonos', label:'Bonos', ico:'🎯'},
   {key:'perfil', label:'Perfil', ico:'👤'},
@@ -663,7 +974,7 @@ function renderShell(){
         <div class="navtabs" id="navtabs">
           ${tabs.map(t=>`<div class="navtab ${state.view===t.key?'active':''}" data-view="${t.key}"><span class="ico">${t.ico}</span>${t.label}</div>`).join('')}
         </div>
-        <div class="nav-avatar" id="nav-avatar-btn" title="${profile.displayName}">${avatarSVG(profile.avatar,36)}</div>
+        <div class="nav-avatar" id="nav-avatar-btn" title="${profile.displayName}">${avatarSVG(profile.avatar,36, myGeneralRank())}</div>
       </div>
     </nav>
     <div id="view-root"></div>
@@ -676,6 +987,7 @@ function renderShell(){
   if(state.view==='inicio') root.innerHTML = viewInicio();
   else if(state.view==='hoy') root.innerHTML = viewHoy();
   else if(state.view==='calendario') root.innerHTML = viewCalendario();
+  else if(state.view==='bracket') root.innerHTML = viewBracket();
   else if(state.view==='clasificacion') root.innerHTML = viewClasificacion();
   else if(state.view==='bonos') root.innerHTML = viewBonos();
   else if(state.view==='perfil') root.innerHTML = viewPerfil();
@@ -708,7 +1020,7 @@ function renderMatchCard(m){
     ? `<div class="vs-score">${m.homeScore} – ${m.awayScore}</div>`
     : (m.date ? `<div class="countdown">
         ${cd ? `<div class="seg"><b>${cd.d}</b><span>DÍAS</span></div><div class="seg"><b>${cd.h}</b><span>HRS</span></div><div class="seg"><b>${cd.m}</b><span>MIN</span></div>` : `<div class="kickoff">En curso</div>`}
-       </div><div class="kickoff" style="margin-top:6px">Cierra antes de ${fmtDateShort(m.date)} · ${m.time||''}</div>`
+       </div><div class="kickoff" style="margin-top:6px">Cierra: ${fmtDateShort(m.date)} · ${m.time||''}</div>`
       : `<div class="kickoff">📌 ${m.dateHint||'Fecha por definir'}</div>`);
 
   let predictArea = '';
@@ -722,7 +1034,7 @@ function renderMatchCard(m){
       predictArea = `<div class="predict-row">
         <span class="hint">Pronosticaste</span>
         <strong class="mono">${myPred.homeScore}-${myPred.awayScore}</strong>
-        ${hasResult ? `<span class="points-tag ${tagClass}">${pts===null?'':'+'+pts+' pts'}</span>` : `<span class="hint">esperando resultado…</span>`}
+        ${hasResult ? `<span class="points-tag ${tagClass}" ${pts===CONFIG.SCORE_EXACT?`data-exact-match="${m.id}"`:''}>${pts===null?'':'+'+pts+' pts'}</span>` : `<span class="hint">esperando resultado…</span>`}
       </div>`;
     } else {
       predictArea = `<div class="predict-row"><span class="hint">No enviaste pronóstico para este partido 😬</span></div>`;
@@ -770,6 +1082,17 @@ function bindMatchCardEvents(root=document){
       submitPrediction(id, h, a);
     });
   });
+  if(state.user){
+    const seenKey = `qm26_seen_exact_${state.user.uid}`;
+    const seen = seenSet(seenKey);
+    $$('[data-exact-match]', root).forEach(el=>{
+      const mid = el.dataset.exactMatch;
+      if(!seen.has(mid)){
+        confettiBurst(1600, 50);
+        markSeen(seenKey, mid);
+      }
+    });
+  }
 }
 
 function renderConfigNeeded(){
@@ -1140,6 +1463,55 @@ function startRealtimeListeners(){
 
 /* ---- motor de cálculo: puntos diarios y generales ---- */
 function matchList(){ return Object.values(state.matches); }
+
+/* ============================================================
+   TABLAS DE GRUPO + ESTADO DE EQUIPOS (clasificado/eliminado)
+   Nota: usa criterio simplificado de desempate (puntos, luego
+   diferencia de gol, luego goles a favor) — no replica el 100%
+   de las reglas oficiales de FIFA para casos raros de empate
+   triple, pero es más que suficiente para la quiniela.
+   ============================================================ */
+function computeGroupStandings(g){
+  const teams = GROUPS[g].map(code=>({code, pts:0, gf:0, ga:0, played:0}));
+  const byCode = Object.fromEntries(teams.map(t=>[t.code,t]));
+  matchList().filter(m=>m.phase==='group' && m.group===g).forEach(m=>{
+    if(m.homeScore===null || m.homeScore===undefined) return;
+    const h = byCode[m.home], a = byCode[m.away];
+    h.played++; a.played++;
+    h.gf += m.homeScore; h.ga += m.awayScore;
+    a.gf += m.awayScore; a.ga += m.homeScore;
+    if(m.homeScore>m.awayScore){ h.pts+=3; } else if(m.homeScore<m.awayScore){ a.pts+=3; } else { h.pts+=1; a.pts+=1; }
+  });
+  teams.forEach(t=>t.gd = t.gf-t.ga);
+  teams.sort((a,b)=> b.pts-a.pts || b.gd-a.gd || b.gf-a.gf);
+  return teams;
+}
+function groupComplete(g){
+  return matchList().filter(m=>m.phase==='group' && m.group===g)
+    .every(m=>m.homeScore!==null && m.homeScore!==undefined);
+}
+// 'clasificado' | 'eliminado' | 'pendiente' | 'en_juego'
+function teamStatus(code){
+  const g = Object.keys(GROUPS).find(k=>GROUPS[k].includes(code));
+  if(!g) return 'en_juego';
+  if(!groupComplete(g)) return 'en_juego';
+  const standings = computeGroupStandings(g);
+  const pos = standings.findIndex(t=>t.code===code);
+  if(pos===0 || pos===1) return 'clasificado';
+  if(pos===3) return 'eliminado';
+  // pos===2 (tercer lugar): depende de si está entre los 8 mejores
+  // terceros de todos los grupos — solo se sabe cuando TODOS los
+  // grupos terminan.
+  const allGroupsDone = Object.keys(GROUPS).every(groupComplete);
+  if(!allGroupsDone) return 'pendiente';
+  const thirds = Object.keys(GROUPS).map(gr=>{
+    const st = computeGroupStandings(gr);
+    return Object.assign({group:gr}, st[2]);
+  }).sort((a,b)=> b.pts-a.pts || b.gd-a.gd || b.gf-a.gf);
+  const bestEight = thirds.slice(0,8).map(t=>t.code);
+  return bestEight.includes(code) ? 'clasificado' : 'eliminado';
+}
+
 function predFor(matchId, uid){ return state.predictions[`${matchId}__${uid}`] || null; }
 function allUids(){ return Object.keys(state.users); }
 
@@ -1187,6 +1559,11 @@ function computeGeneralBoard(){
   return Object.keys(totals).map(uid=>({uid, total:totals[uid], daysWon:daysWon[uid]||0}))
     .sort((a,b)=> b.total-a.total || b.daysWon-a.daysWon);
 }
+function myGeneralRank(){
+  if(!state.user) return null;
+  const i = computeGeneralBoard().findIndex(r=>r.uid===state.user.uid);
+  return i===-1 ? null : i+1;
+}
 
 /* ============================================================
    VISTA: CLASIFICACIÓN
@@ -1196,9 +1573,10 @@ function lbRowHTML(r, i, mode){
   const rankClass = i===0 ? 'gold' : '';
   const crown = i===0 ? '<span class="crown">👑</span> ' : '';
   const isMe = state.user && r.uid===state.user.uid;
+  const avRank = mode==='total' ? (i+1) : null;
   return `<div class="lb-row" style="${isMe?'background:rgba(244,183,63,.06)':''}">
     <div class="lb-rank ${rankClass}">${i+1}</div>
-    <div class="lb-user"><div class="lb-av">${avatarSVG(u.avatar,38)}</div>
+    <div class="lb-user"><div class="lb-av">${avatarSVG(u.avatar,38,avRank)}</div>
       <div style="min-width:0"><div class="lb-name">${crown}${u.displayName}${isMe?' <span style="color:var(--ink-500); font-weight:400">(tú)</span>':''}</div>
       ${mode==='total' ? `<div class="lb-sub">${r.daysWon} día${r.daysWon===1?'':'s'} ganado${r.daysWon===1?'':'s'}</div>` : ''}</div>
     </div>
@@ -1208,11 +1586,20 @@ function lbRowHTML(r, i, mode){
 function viewClasificacion(){
   const tab = state.lbTab;
   let body = '';
+  let revealBanner = '';
   if(tab==='general'){
     const gb = computeGeneralBoard();
     body = gb.length ? gb.map((r,i)=>lbRowHTML(r,i,'total')).join('') : `<div class="empty-state">Todavía no hay puntos registrados.</div>`;
   } else {
     const days = computeDailyBoards().slice().reverse();
+    const latest = days[0];
+    if(latest && state.user && latest.winners.includes(state.user.uid)){
+      revealBanner = `<div class="card reveal-card" id="reveal-card">
+        <div class="reveal-confetti-emoji">🎉</div>
+        <div class="reveal-title">¡Ganaste el día!</div>
+        <div class="reveal-sub">${fmtDateLong(latest.date)} — eres top del día con ${latest.rows.find(r=>r.uid===state.user.uid).pts} puntos</div>
+      </div>`;
+    }
     body = days.length ? days.map(day=>`
       <div class="day-group-label" style="margin-top:26px">${fmtDateLong(day.date)}<div class="line"></div></div>
       <div class="card">${day.rows.map((r,i)=>lbRowHTML(r,i,'day')).join('')}</div>
@@ -1225,6 +1612,7 @@ function viewClasificacion(){
       <button class="tab-chip ${tab==='diaria'?'active':''}" data-lbtab="diaria">🏆 Ganadores por día</button>
       <button class="tab-chip ${tab==='general'?'active':''}" data-lbtab="general">📊 Tabla general</button>
     </div>
+    ${revealBanner}
     ${tab==='general' ? `<div class="card">${body}</div>` : body}
   </div>`;
 }
@@ -1294,6 +1682,15 @@ function viewPerfil(){
         <div class="stat-box card"><div class="n">${mine.total}</div><div class="l">Puntos totales</div></div>
         <div class="stat-box card"><div class="n">${mine.daysWon}</div><div class="l">Días ganados</div></div>
         <div class="stat-box card"><div class="n">${myPredsCount}</div><div class="l">Pronósticos enviados</div></div>
+      </div>
+      <div class="wrapped-box">
+        <div class="builder-label" style="margin:0 0 4px">Tu Mundial hasta ahora</div>
+        <p class="hint" style="margin-bottom:14px">Genera tu tarjeta tipo "wrapped" para presumir en el chat.</p>
+        <button class="btn btn-gold btn-sm" id="p-gen-wrapped">🎁 Generar mi Wrapped</button>
+        <div id="wrapped-preview" class="wrapped-preview hidden">
+          <canvas id="wrapped-canvas"></canvas>
+          <button class="btn btn-primary btn-sm" id="p-download-wrapped" style="margin-top:14px">⬇️ Descargar imagen</button>
+        </div>
       </div>
       <div class="builder-label" style="margin-top:30px">Edita tu avatar</div>
       ${avatarBuilderHTML(state.profileDraft,'profile')}
@@ -1384,7 +1781,24 @@ function bindViewEvents(){
   bindMatchCardEvents();
   $$('[data-goto]').forEach(b=>b.addEventListener('click', ()=>{ state.view=b.dataset.goto; render(); }));
   $$('[data-calf]').forEach(b=>b.addEventListener('click', ()=>{ state.calFilter=b.dataset.calf; render(); }));
+  $$('[data-bracket-goto]').forEach(b=>b.addEventListener('click', ()=>{
+    state.calFilter='eliminatoria'; state.view='calendario'; render();
+  }));
   $$('[data-lbtab]').forEach(b=>b.addEventListener('click', ()=>{ state.lbTab=b.dataset.lbtab; render(); }));
+
+  const revealCard = $('#reveal-card');
+  if(revealCard && state.user){
+    const days = computeDailyBoards().slice().reverse();
+    const latest = days[0];
+    if(latest){
+      const seenKey = `qm26_seen_win_${state.user.uid}`;
+      const seen = seenSet(seenKey);
+      if(!seen.has(latest.date)){
+        confettiBurst();
+        markSeen(seenKey, latest.date);
+      }
+    }
+  }
 
   if(state.view==='bonos'){
     const f = $('#bonus-form');
@@ -1404,6 +1818,24 @@ function bindViewEvents(){
     $('#p-save-name').addEventListener('click', ()=>saveDisplayName($('#p-name').value));
     $('#p-save-avatar').addEventListener('click', ()=>saveAvatar(state.profileDraft));
     $('#p-logout').addEventListener('click', doLogout);
+    $('#p-gen-wrapped').addEventListener('click', async ()=>{
+      const btn = $('#p-gen-wrapped'); btn.disabled = true; btn.textContent = 'Generando…';
+      try{
+        const canvas = $('#wrapped-canvas');
+        await drawWrappedCard(canvas, state.user.uid);
+        $('#wrapped-preview').classList.remove('hidden');
+        confettiBurst(1400, 60);
+      }catch(e){ console.error(e); toast('No se pudo generar el wrapped'); }
+      finally{ btn.disabled=false; btn.textContent='🎁 Generar mi Wrapped'; }
+    });
+    const dlBtn = $('#p-download-wrapped');
+    if(dlBtn) dlBtn.addEventListener('click', ()=>{
+      const canvas = $('#wrapped-canvas');
+      const a = document.createElement('a');
+      a.download = 'mi-wrapped-mundial-26.png';
+      a.href = canvas.toDataURL('image/png');
+      a.click();
+    });
   }
 
   if(state.view==='admin'){
