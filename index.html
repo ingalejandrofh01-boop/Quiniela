@@ -295,6 +295,14 @@ button{font-family:inherit}
 @keyframes revealBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 .toast{position:fixed; bottom:22px; left:50%; transform:translateX(-50%) translateY(120%); background:var(--ink-100); color:var(--navy-950); padding:13px 22px; border-radius:999px; font-weight:700; font-size:13.5px; z-index:999; transition:transform .35s cubic-bezier(.2,.9,.3,1.2); box-shadow:var(--shadow-deep)}
 .toast.show{transform:translateX(-50%) translateY(0)}
+.fab-share{position:fixed; right:22px; bottom:26px; width:58px; height:58px; border-radius:50%; border:none; cursor:pointer; z-index:200; background:linear-gradient(135deg,var(--wave-green),#1fae6b); box-shadow:0 10px 26px -6px rgba(47,169,104,.55), 0 0 0 1px rgba(255,255,255,.08); display:flex; align-items:center; justify-content:center; transition:transform .15s ease, box-shadow .15s ease}
+.fab-share:hover{transform:translateY(-3px) scale(1.05); box-shadow:0 16px 32px -6px rgba(47,169,104,.65)}
+.fab-share:active{transform:scale(.95)}
+.fab-ico{font-size:24px; filter:drop-shadow(0 1px 2px rgba(0,0,0,.3))}
+@media(max-width:640px){
+  .fab-share{right:16px; bottom:18px; width:52px; height:52px}
+  .fab-ico{font-size:21px}
+}
 footer{padding:40px 20px 60px; text-align:center; color:var(--ink-600); font-size:12px}
 .spinner{width:22px;height:22px;border-radius:50%; border:3px solid var(--line); border-top-color:var(--wave-red); animation:spin .8s linear infinite; margin:0 auto}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -1075,9 +1083,13 @@ function renderShell(){
     </nav>
     <div id="view-root"></div>
     <footer>Quiniela Mundial 26 · hecha por y para la banda · datos vía football-data.org</footer>
+    <button type="button" class="fab-share" id="fab-share-btn" title="Compartir clasificación del día">
+      <span class="fab-ico">📤</span>
+    </button>
   `;
   $$('.navtab').forEach(t=>t.addEventListener('click', ()=>{ state.view = t.dataset.view; render(); }));
   $('#nav-avatar-btn').addEventListener('click', ()=>{ state.view='perfil'; render(); });
+  $('#fab-share-btn').addEventListener('click', shareTodayToWhatsApp);
 
   const root = $('#view-root');
   if(state.view==='inicio') root.innerHTML = viewInicio();
@@ -1731,6 +1743,35 @@ function myGeneralRank(){
   if(!state.user) return null;
   const i = computeGeneralBoard().findIndex(r=>r.uid===state.user.uid);
   return i===-1 ? null : i+1;
+}
+
+/* ============================================================
+   COMPARTIR A WHATSAPP — clasificación del día más reciente
+   ============================================================ */
+const MEDALS = ['🥇','🥈','🥉'];
+function buildDailyShareText(){
+  const days = computeDailyBoards().slice().reverse();
+  const latest = days[0];
+  if(!latest){
+    return `🏆 *${CONFIG.APP_NAME}* ⚽\n\nAún no hay resultados — ¡manden sus pronósticos! 👀`;
+  }
+  const lines = latest.rows.map((r,i)=>{
+    const u = state.users[r.uid] || {displayName:'Jugador'};
+    const medal = MEDALS[i] || `${i+1}.`;
+    const crown = latest.winners.includes(r.uid) ? ' 👑' : '';
+    return `${medal} ${i===0?'*':''}${u.displayName}${i===0?'*':''} — ${r.pts} pts${crown}`;
+  }).join('\n');
+  const noPlay = allUids().length - latest.rows.length;
+  let msg = `🏆 *${CONFIG.APP_NAME}* ⚽\n📅 Resultados de ${fmtDateLong(latest.date)}\n\n`;
+  msg += lines || 'Nadie sumó puntos hoy 😬';
+  if(noPlay>0) msg += `\n\n${noPlay} no enviaron pronóstico hoy 👀`;
+  msg += `\n\n¡A seguirle echando ganas! 🔥⚽`;
+  return msg;
+}
+function shareTodayToWhatsApp(){
+  const text = buildDailyShareText();
+  const url = 'https://wa.me/?text=' + encodeURIComponent(text);
+  window.open(url, '_blank', 'noopener');
 }
 
 /* ============================================================
