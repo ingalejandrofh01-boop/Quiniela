@@ -256,6 +256,21 @@ button{font-family:inherit}
 .bslot-team.winner{color:var(--ink-100); font-weight:700}
 .bslot-team.winner b{color:var(--wave-green)}
 .bslot-mypred{font-size:9.5px; color:var(--gold); margin-top:4px; font-family:var(--font-mono)}
+.bslot-team.tbd{opacity:.55}
+.bslot-team.tbd span{font-style:italic; font-size:10.5px}
+.gstand-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:14px; margin-bottom:10px}
+.gstand-card{background:var(--navy-800); border:1px solid var(--line); border-radius:var(--radius-md); padding:12px 14px; overflow-x:auto}
+.gstand-head{font-family:var(--font-display); font-size:15px; color:var(--ink-300); margin-bottom:8px}
+.gstand-table{width:100%; border-collapse:collapse; font-size:11.5px}
+.gstand-table th{color:var(--ink-600); font-weight:600; text-align:center; padding:3px 4px; font-size:9.5px; text-transform:uppercase}
+.gstand-table td{padding:4px; text-align:center; color:var(--ink-300)}
+.gstand-team{display:flex; align-items:center; gap:6px; text-align:left !important}
+.gstand-team .badge{width:20px;height:20px;font-size:6.5px}
+.gstand-team span{font-family:var(--font-mono)}
+.gstand-table tr.gstand-clasificado td{color:var(--ink-100)}
+.gstand-table tr.gstand-clasificado{background:rgba(47,169,104,.08)}
+.gstand-table tr.gstand-eliminado{opacity:.4}
+.gstand-table tr.gstand-pendiente{background:rgba(244,183,63,.05)}
 .teams-board{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:14px}
 .tboard-group{background:var(--navy-800); border:1px solid var(--line); border-radius:var(--radius-md); padding:14px}
 .tboard-glabel{font-family:var(--font-display); font-size:14px; color:var(--ink-500); margin-bottom:10px; letter-spacing:.03em}
@@ -463,27 +478,69 @@ function buildGroupMatches(){
 // Fase eliminatoria: se anuncian los cruces reales conforme termina
 // la fase de grupos (28 jun en adelante). Se generan como "por
 // definir" — el panel de Admin los completa con Sync o a mano.
+// Estructura OFICIAL de la eliminatoria del Mundial 2026 (FIFA), con el
+// número de partido real (73-104) y de dónde sale cada equipo:
+// W:'X'        -> ganador del Grupo X
+// R:'X'        -> segundo lugar del Grupo X
+// T:[lista]    -> el "mejor tercero" que le toque, entre esos grupos
+// M:'73'       -> ganador del partido 73 (o L:'101' para el perdedor)
+const KO_DEF = [
+  // --- Dieciseisavos (Round of 32) ---
+  {n:73, stage:'r32', dateHint:'28 jun', home:{R:'A'}, away:{R:'B'}},
+  {n:74, stage:'r32', dateHint:'29 jun', home:{W:'E'}, away:{T:['A','B','C','D','F']}},
+  {n:75, stage:'r32', dateHint:'29 jun', home:{W:'F'}, away:{R:'C'}},
+  {n:76, stage:'r32', dateHint:'29 jun', home:{W:'C'}, away:{R:'F'}},
+  {n:77, stage:'r32', dateHint:'30 jun', home:{W:'I'}, away:{T:['C','D','F','G','H']}},
+  {n:78, stage:'r32', dateHint:'30 jun', home:{R:'E'}, away:{R:'I'}},
+  {n:79, stage:'r32', dateHint:'30 jun', home:{W:'A'}, away:{T:['C','E','F','H','I']}},
+  {n:80, stage:'r32', dateHint:'1 jul',  home:{W:'L'}, away:{T:['E','H','I','J','K']}},
+  {n:81, stage:'r32', dateHint:'1 jul',  home:{W:'D'}, away:{T:['B','E','F','I','J']}},
+  {n:82, stage:'r32', dateHint:'1 jul',  home:{W:'G'}, away:{T:['A','E','H','I','J']}},
+  {n:83, stage:'r32', dateHint:'2 jul',  home:{R:'K'}, away:{R:'L'}},
+  {n:84, stage:'r32', dateHint:'2 jul',  home:{W:'H'}, away:{R:'J'}},
+  {n:85, stage:'r32', dateHint:'2 jul',  home:{W:'B'}, away:{T:['E','F','G','I','J']}},
+  {n:86, stage:'r32', dateHint:'3 jul',  home:{W:'J'}, away:{R:'H'}},
+  {n:87, stage:'r32', dateHint:'3 jul',  home:{W:'K'}, away:{T:['D','E','I','J','L']}},
+  {n:88, stage:'r32', dateHint:'3 jul',  home:{R:'D'}, away:{R:'G'}},
+  // --- Octavos (Round of 16) ---
+  {n:89, stage:'r16', dateHint:'4 jul', home:{M:74}, away:{M:77}},
+  {n:90, stage:'r16', dateHint:'4 jul', home:{M:73}, away:{M:75}},
+  {n:91, stage:'r16', dateHint:'5 jul', home:{M:76}, away:{M:78}},
+  {n:92, stage:'r16', dateHint:'5 jul', home:{M:79}, away:{M:80}},
+  {n:93, stage:'r16', dateHint:'6 jul', home:{M:83}, away:{M:84}},
+  {n:94, stage:'r16', dateHint:'6 jul', home:{M:81}, away:{M:82}},
+  {n:95, stage:'r16', dateHint:'7 jul', home:{M:86}, away:{M:88}},
+  {n:96, stage:'r16', dateHint:'7 jul', home:{M:85}, away:{M:87}},
+  // --- Cuartos ---
+  {n:97,  stage:'qf', dateHint:'9 jul',  home:{M:89}, away:{M:90}},
+  {n:98,  stage:'qf', dateHint:'11 jul', home:{M:93}, away:{M:94}},
+  {n:99,  stage:'qf', dateHint:'10 jul', home:{M:91}, away:{M:92}},
+  {n:100, stage:'qf', dateHint:'11 jul', home:{M:95}, away:{M:96}},
+  // --- Semifinal ---
+  {n:101, stage:'sf', dateHint:'14 jul', home:{M:97}, away:{M:98}},
+  {n:102, stage:'sf', dateHint:'15 jul', home:{M:99}, away:{M:100}},
+  // --- Tercer lugar y Final ---
+  {n:103, stage:'p3',    dateHint:'18 jul', home:{L:101}, away:{L:102}},
+  {n:104, stage:'final', dateHint:'19 jul', home:{M:101}, away:{M:102}},
+];
+const KO_STAGE_LABEL = {r32:'Dieciseisavos de Final', r16:'Octavos de Final', qf:'Cuartos de Final', sf:'Semifinal', p3:'Tercer Lugar', final:'GRAN FINAL'};
+function sourceLabel(src){
+  if(!src) return '?';
+  if(src.W) return `1° Grupo ${src.W}`;
+  if(src.R) return `2° Grupo ${src.R}`;
+  if(src.T) return `Mejor 3° (${src.T.join('/')})`;
+  if(src.M) return `Ganador Partido ${src.M}`;
+  if(src.L) return `Perdedor Partido ${src.L}`;
+  return '?';
+}
 function buildKnockoutMatches(){
-  const rounds = [
-    {key:'r32', label:'Dieciseisavos de Final', count:16, dateHint:'28 jun – 3 jul'},
-    {key:'r16', label:'Octavos de Final', count:8, dateHint:'4 – 7 jul'},
-    {key:'qf',  label:'Cuartos de Final', count:4, dateHint:'9 – 11 jul'},
-    {key:'sf',  label:'Semifinal', count:2, dateHint:'14 – 15 jul'},
-    {key:'p3',  label:'Tercer Lugar', count:1, dateHint:'18 jul'},
-    {key:'final', label:'GRAN FINAL', count:1, dateHint:'19 jul'}
-  ];
-  const out = [];
-  rounds.forEach(r=>{
-    for(let i=1;i<=r.count;i++){
-      out.push({
-        id:`KO-${r.key}-${i}`, phase:'knockout', group:null,
-        round: r.count>1 ? `${r.label} · Partido ${i}` : r.label,
-        date:null, time:null, dateHint:r.dateHint,
-        home:null, away:null, homeScore:null, awayScore:null, status:'PENDING_BRACKET'
-      });
-    }
-  });
-  return out;
+  return KO_DEF.map(d=>({
+    id:`M${d.n}`, n:d.n, phase:'knockout', group:null, stage:d.stage,
+    round: KO_STAGE_LABEL[d.stage] + (d.stage==='r32'||d.stage==='r16'||d.stage==='qf' ? ` · Partido ${d.n}` : ''),
+    date:null, time:null, dateHint:d.dateHint,
+    homeSrc:d.home, awaySrc:d.away,
+    home:null, away:null, homeScore:null, awayScore:null, status:'PENDING_BRACKET'
+  }));
 }
 
 const ALL_MATCHES_SEED = [...buildGroupMatches(), ...buildKnockoutMatches()];
@@ -817,7 +874,7 @@ function viewInicio(){
       <button class="btn btn-ghost btn-sm" data-goto="hoy">Ver todos →</button>
     </div>
     ${todays.length ? `<div class="match-grid">${todays.slice(0,3).map(renderMatchCard).join('')}</div>`
-      : `<div class="card empty-state"><div class="e">⚽</div>Hoy no hay partidos programados.${next?` El siguiente es <strong>${teamName(next.home)} vs ${teamName(next.away)}</strong> el ${fmtDateShort(next.date)}.`:''}</div>`}
+      : `<div class="card empty-state"><div class="e">⚽</div>Hoy no hay partidos programados.${next?` El siguiente es <strong>${teamName(resolveMatchTeams(next).home)} vs ${teamName(resolveMatchTeams(next).away)}</strong> el ${fmtDateShort(next.date)}.`:''}</div>`}
   </div>
   ${waveDivider()}
   <div class="wrap section">
@@ -917,27 +974,66 @@ const KO_ROUNDS = [
   {key:'r32', label:'16avos'}, {key:'r16', label:'Octavos'}, {key:'qf', label:'Cuartos'},
   {key:'sf', label:'Semifinal'}, {key:'p3', label:'3er Lugar'}, {key:'final', label:'🏆 Final'}
 ];
-function roundKeyOf(matchId){ return matchId.split('-')[1]; }
+function sourceLabelShort(src){
+  if(!src) return '???';
+  if(src.W) return `1° ${src.W}`;
+  if(src.R) return `2° ${src.R}`;
+  if(src.T) return `3° (${src.T.join('')})`;
+  if(src.M) return `Gan. P${src.M}`;
+  if(src.L) return `Perd. P${src.L}`;
+  return '???';
+}
 function bracketSlotHTML(m){
   const has = m.homeScore!==null && m.homeScore!==undefined;
+  const {home:rh, away:ra} = resolveMatchTeams(m);
   const myPred = state.user ? predFor(m.id, state.user.uid) : null;
   const homeWin = has && m.homeScore>m.awayScore;
   const awayWin = has && m.awayScore>m.homeScore;
+  const homeLbl = rh ? teamName(rh) : sourceLabelShort(m.homeSrc);
+  const awayLbl = ra ? teamName(ra) : sourceLabelShort(m.awaySrc);
   return `<button type="button" class="bracket-slot" data-bracket-goto="${m.id}">
-    <div class="bslot-team ${homeWin?'winner':''}">${teamBadge(m.home,22)}<span>${m.home||'???'}</span><b class="mono">${has?m.homeScore:''}</b></div>
-    <div class="bslot-team ${awayWin?'winner':''}">${teamBadge(m.away,22)}<span>${m.away||'???'}</span><b class="mono">${has?m.awayScore:''}</b></div>
-    ${myPred && !has ? `<div class="bslot-mypred">Tú: ${myPred.homeScore}-${myPred.awayScore}</div>` : ''}
+    <div class="bslot-team ${homeWin?'winner':''} ${!rh?'tbd':''}">${teamBadge(rh,22)}<span>${homeLbl}</span><b class="mono">${has?m.homeScore:''}</b></div>
+    <div class="bslot-team ${awayWin?'winner':''} ${!ra?'tbd':''}">${teamBadge(ra,22)}<span>${awayLbl}</span><b class="mono">${has?m.awayScore:''}</b></div>
+    ${myPred && !has && rh && ra ? `<div class="bslot-mypred">Tú: ${myPred.homeScore}-${myPred.awayScore}</div>` : ''}
   </button>`;
+}
+function groupStandingsTableHTML(g){
+  const st = computeGroupStandings(g);
+  const complete = groupComplete(g);
+  return `<div class="gstand-card">
+    <div class="gstand-head">Grupo ${g}</div>
+    <table class="gstand-table"><thead><tr><th></th><th>Equipo</th><th>PJ</th><th>DG</th><th>Pts</th></tr></thead>
+    <tbody>
+      ${st.map((t,i)=>{
+        const status = complete ? (i<2?'clasificado':(i===3?'eliminado':'pendiente')) : 'en_juego';
+        return `<tr class="gstand-${status}">
+          <td class="gstand-pos">${i+1}</td>
+          <td class="gstand-team">${teamBadge(t.code,20)}<span>${t.code}</span></td>
+          <td>${t.played}</td>
+          <td>${t.gd>0?'+':''}${t.gd}</td>
+          <td><b>${t.pts}</b></td>
+        </tr>`;
+      }).join('')}
+    </tbody></table>
+  </div>`;
 }
 function viewBracket(){
   const ko = matchList().filter(m=>m.phase==='knockout');
   const cols = KO_ROUNDS.map(r=>({
     ...r,
-    matches: ko.filter(m=>roundKeyOf(m.id)===r.key).sort((a,b)=>a.id.localeCompare(b.id, undefined, {numeric:true}))
+    matches: ko.filter(m=>m.stage===r.key).sort((a,b)=>(a.n||0)-(b.n||0))
   }));
   return `
   <div class="wrap section">
-    <div class="section-head"><h2>Bracket de eliminatoria</h2><div class="sub">Toca un cruce para ir a pronosticarlo · se va llenando conforme termina la fase de grupos</div></div>
+    <div class="section-head"><h2>Bracket de eliminatoria</h2><div class="sub">Tablas de grupo en vivo + el camino completo hasta la final · toca un cruce para pronosticarlo</div></div>
+    <div class="gstand-grid">
+      ${Object.keys(GROUPS).map(groupStandingsTableHTML).join('')}
+    </div>
+    <div class="tboard-legend" style="margin:14px 0 28px">
+      <span><i class="dot dot-alive"></i> Clasificado</span>
+      <span><i class="dot dot-pending"></i> Pendiente (depende de otros grupos)</span>
+      <span><i class="dot dot-out"></i> Eliminado</span>
+    </div>
     <div class="bracket-scroll">
       <div class="bracket-grid">
         ${cols.map((col,ci)=>`
@@ -1005,6 +1101,7 @@ function countdownParts(ms){
 }
 function renderMatchCard(m){
   const locked = isLocked(m);
+  const {home:rh, away:ra} = resolveMatchTeams(m);
   const myPred = state.user ? predFor(m.id, state.user.uid) : null;
   const hasResult = m.homeScore!==null && m.homeScore!==undefined;
   const pts = hasResult ? scoreFor(myPred, m) : null;
@@ -1024,7 +1121,7 @@ function renderMatchCard(m){
       : `<div class="kickoff">📌 ${m.dateHint||'Fecha por definir'}</div>`);
 
   let predictArea = '';
-  if(!m.home || !m.away){
+  if(!rh || !ra){
     predictArea = `<div class="waiting-note">Se define con los resultados de la fase de grupos</div>`;
   } else if(!state.user){
     predictArea = '';
@@ -1064,9 +1161,9 @@ function renderMatchCard(m){
     <div>
       <div class="match-meta"><span>${m.round}</span> ${statusPill}</div>
       <div class="match-teams">
-        <div class="team">${teamBadge(m.home)}<span class="team-name">${teamName(m.home)}</span></div>
+        <div class="team">${teamBadge(rh)}<span class="team-name">${rh?teamName(rh):(m.homeSrc?sourceLabel(m.homeSrc):'Por definir')}</span></div>
         <div class="vs-block">${scoreOrCountdown}</div>
-        <div class="team away">${teamBadge(m.away)}<span class="team-name">${teamName(m.away)}</span></div>
+        <div class="team away">${teamBadge(ra)}<span class="team-name">${ra?teamName(ra):(m.awaySrc?sourceLabel(m.awaySrc):'Por definir')}</span></div>
       </div>
       ${predictArea}
     </div>
@@ -1433,6 +1530,7 @@ function startRealtimeListeners(){
   unsubs.push(onSnapshot(collection(db,'matches'), snap=>{
     if(!snap.empty) state.matchesSeeded = true;
     snap.forEach(d=>{ state.matches[d.id] = Object.assign({}, seedById[d.id]||{}, d.data(), {id:d.id}); });
+    _thirdAssignCache = null;
     render();
   }, err=>console.warn('matches listener', err)));
 
@@ -1491,6 +1589,15 @@ function groupComplete(g){
     .every(m=>m.homeScore!==null && m.homeScore!==undefined);
 }
 // 'clasificado' | 'eliminado' | 'pendiente' | 'en_juego'
+function allGroupsComplete(){ return Object.keys(GROUPS).every(groupComplete); }
+function bestThirds(){
+  // [{group, code, pts, gd, gf}] de los 12 terceros lugares, ordenados;
+  // solo tiene sentido completo cuando allGroupsComplete() es true.
+  return Object.keys(GROUPS).map(gr=>{
+    const st = computeGroupStandings(gr);
+    return Object.assign({group:gr}, st[2]);
+  }).sort((a,b)=> b.pts-a.pts || b.gd-a.gd || b.gf-a.gf);
+}
 function teamStatus(code){
   const g = Object.keys(GROUPS).find(k=>GROUPS[k].includes(code));
   if(!g) return 'en_juego';
@@ -1502,15 +1609,76 @@ function teamStatus(code){
   // pos===2 (tercer lugar): depende de si está entre los 8 mejores
   // terceros de todos los grupos — solo se sabe cuando TODOS los
   // grupos terminan.
-  const allGroupsDone = Object.keys(GROUPS).every(groupComplete);
-  if(!allGroupsDone) return 'pendiente';
-  const thirds = Object.keys(GROUPS).map(gr=>{
-    const st = computeGroupStandings(gr);
-    return Object.assign({group:gr}, st[2]);
-  }).sort((a,b)=> b.pts-a.pts || b.gd-a.gd || b.gf-a.gf);
-  const bestEight = thirds.slice(0,8).map(t=>t.code);
-  return bestEight.includes(code) ? 'clasificado' : 'eliminado';
+  if(!allGroupsComplete()) return 'pendiente';
+  const bestEight = bestThirds().slice(0,8).map(t=>t.group);
+  return bestEight.includes(g) ? 'clasificado' : 'eliminado';
 }
+
+/* ============================================================
+   RESOLUCIÓN DEL BRACKET — a quién le toca jugar contra quién,
+   calculado en vivo a partir de las tablas de grupo reales.
+   ============================================================ */
+// matchId ('M73'..'M88' con T:[...]) -> grupo que le toca ese slot
+// de "mejor tercero", calculado con la tabla oficial de FIFA
+// (8 grupos avanzan, cada slot acepta un subconjunto fijo).
+let _thirdAssignCache = null;
+function thirdPlaceAssignment(){
+  if(_thirdAssignCache) return _thirdAssignCache;
+  if(!allGroupsComplete()) return {};
+  const bestEight = new Set(bestThirds().slice(0,8).map(t=>t.group));
+  const slots = KO_DEF.filter(d=>d.away && d.away.T).map(d=>({id:`M${d.n}`, eligible: d.away.T.filter(g=>bestEight.has(g))}));
+  // Emparejamiento bipartito por caminos de aumento (Kuhn): garantiza
+  // encontrar la asignación completa si existe una — probado contra
+  // las 495 combinaciones posibles de "8 de 12 grupos", sin fallos.
+  const slotOfGroup = {};
+  function tryAssign(slot, visited){
+    for(const g of slot.eligible){
+      if(visited.has(g)) continue;
+      visited.add(g);
+      if(!(g in slotOfGroup) || tryAssign(slots.find(s=>s.id===slotOfGroup[g]), visited)){
+        slotOfGroup[g] = slot.id;
+        return true;
+      }
+    }
+    return false;
+  }
+  slots.slice().sort((a,b)=>a.eligible.length-b.eligible.length).forEach(slot=>tryAssign(slot, new Set()));
+  const assignment = {};
+  Object.entries(slotOfGroup).forEach(([g,slotId])=>{ assignment[slotId] = g; });
+  _thirdAssignCache = assignment;
+  return assignment;
+}
+function resolveSlot(src, matchId){
+  if(!src) return null;
+  if(src.W) return groupComplete(src.W) ? computeGroupStandings(src.W)[0].code : null;
+  if(src.R) return groupComplete(src.R) ? computeGroupStandings(src.R)[1].code : null;
+  if(src.T){
+    const assign = thirdPlaceAssignment();
+    const g = assign[matchId];
+    return g ? computeGroupStandings(g)[2].code : null;
+  }
+  if(src.M){
+    const m = state.matches[`M${src.M}`];
+    if(!m || m.homeScore===null || m.homeScore===undefined) return null;
+    const t = resolveMatchTeams(m);
+    return m.homeScore>m.awayScore ? t.home : (m.awayScore>m.homeScore ? t.away : null);
+  }
+  if(src.L){
+    const m = state.matches[`M${src.L}`];
+    if(!m || m.homeScore===null || m.homeScore===undefined) return null;
+    const t = resolveMatchTeams(m);
+    return m.homeScore>m.awayScore ? t.away : (m.awayScore>m.homeScore ? t.home : null);
+  }
+  return null;
+}
+function resolveMatchTeams(m){
+  if(m.phase!=='knockout') return {home:m.home, away:m.away};
+  return {
+    home: m.home || resolveSlot(m.homeSrc, m.id),
+    away: m.away || resolveSlot(m.awaySrc, m.id)
+  };
+}
+
 
 function predFor(matchId, uid){ return state.predictions[`${matchId}__${uid}`] || null; }
 function allUids(){ return Object.keys(state.users); }
@@ -1724,7 +1892,7 @@ function viewAdmin(){
     <div class="card" style="padding:24px; margin-bottom:18px">
       <h3 style="font-family:var(--font-body); text-transform:none; letter-spacing:0">3. Corregir un resultado a mano</h3>
       <div class="field"><label>Partido</label>
-        <select id="adm-match-select">${matchList().filter(m=>m.home&&m.away).map(m=>`<option value="${m.id}">${m.round} — ${teamName(m.home)} vs ${teamName(m.away)}</option>`).join('')}</select>
+        <select id="adm-match-select">${matchList().filter(m=>{const t=resolveMatchTeams(m); return t.home&&t.away;}).map(m=>{const t=resolveMatchTeams(m); return `<option value="${m.id}">${m.round} — ${teamName(t.home)} vs ${teamName(t.away)}</option>`;}).join('')}</select>
       </div>
       <div style="display:flex; gap:10px; align-items:end">
         <div class="field" style="margin-bottom:0"><label>Local</label><input type="number" min="0" class="score-input" id="adm-home-score"></div>
@@ -1737,7 +1905,7 @@ function viewAdmin(){
       <h3 style="font-family:var(--font-body); text-transform:none; letter-spacing:0">3.5 Corregir fecha y hora de un partido</h3>
       <p class="hint">Las jornadas de grupos traen una hora aproximada — corrígela aquí con el horario real (la hora local que prefieras usar para tu grupo de amigos). El cierre de pronósticos se recalcula solo, ${CONFIG.LOCK_MINUTES_BEFORE} min antes.</p>
       <div class="field"><label>Partido</label>
-        <select id="adm-sched-select">${matchList().filter(m=>m.home&&m.away).map(m=>`<option value="${m.id}" data-date="${m.date||''}" data-time="${m.time||''}">${m.round} — ${teamName(m.home)} vs ${teamName(m.away)}</option>`).join('')}</select>
+        <select id="adm-sched-select">${matchList().filter(m=>{const t=resolveMatchTeams(m); return t.home&&t.away;}).map(m=>{const t=resolveMatchTeams(m); return `<option value="${m.id}" data-date="${m.date||''}" data-time="${m.time||''}">${m.round} — ${teamName(t.home)} vs ${teamName(t.away)}</option>`;}).join('')}</select>
       </div>
       <div style="display:flex; gap:10px; align-items:end; flex-wrap:wrap">
         <div class="field" style="margin-bottom:0"><label>Fecha</label><input type="date" id="adm-sched-date"></div>
@@ -1747,9 +1915,10 @@ function viewAdmin(){
     </div>
 
     <div class="card" style="padding:24px; margin-bottom:18px">
-      <h3 style="font-family:var(--font-body); text-transform:none; letter-spacing:0">4. Definir un cruce de eliminatoria</h3>
+      <h3 style="font-family:var(--font-body); text-transform:none; letter-spacing:0">4. Anular un cruce de eliminatoria (manual)</h3>
+      <p class="hint">Los cruces de eliminatoria ya se arman <strong>solos</strong> con las tablas de grupo reales (sección Bracket). Usa esto solo si necesitas forzar/corregir un equipo a mano.</p>
       <div class="field"><label>Partido de eliminatoria</label>
-        <select id="adm-ko-select">${groupMatches.map(m=>`<option value="${m.id}">${m.round}${m.home?` — ${teamName(m.home)} vs ${teamName(m.away)}`:''}</option>`).join('')}</select>
+        <select id="adm-ko-select">${groupMatches.map(m=>{const t=resolveMatchTeams(m); return `<option value="${m.id}">${m.round}${t.home?` — ${teamName(t.home)} vs ${teamName(t.away||'')}`:''}</option>`;}).join('')}</select>
       </div>
       <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:end">
         <div class="field" style="margin-bottom:0; min-width:140px"><label>Equipo local</label><select id="adm-ko-home">${Object.entries(TEAMS).map(([c,t])=>`<option value="${c}">${t.name}</option>`).join('')}</select></div>
