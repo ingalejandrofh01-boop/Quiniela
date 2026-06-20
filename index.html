@@ -299,11 +299,20 @@ button{font-family:inherit}
 .fab-share:hover{transform:translateY(-3px) scale(1.05); box-shadow:0 16px 32px -6px rgba(47,169,104,.65)}
 .fab-share:active{transform:scale(.95)}
 .fab-ico{font-size:24px; filter:drop-shadow(0 1px 2px rgba(0,0,0,.3))}
+.install-banner{display:flex; align-items:center; gap:12px; padding:11px 16px; background:linear-gradient(95deg,rgba(232,85,58,.12),rgba(54,114,224,.12)); border-bottom:1px solid var(--line)}
+.install-ico{font-size:24px; flex:0 0 auto}
+.install-txt{flex:1; min-width:0; display:flex; flex-direction:column; line-height:1.3}
+.install-txt b{font-size:13px}
+.install-txt span{font-size:11.5px; color:var(--ink-500)}
+.install-close{background:none; border:none; color:var(--ink-500); font-size:16px; cursor:pointer; padding:4px 6px; flex:0 0 auto}
 @media(max-width:640px){
   .fab-share{right:16px; bottom:18px; width:52px; height:52px}
   .fab-ico{font-size:21px}
+  .install-txt span{display:none}
 }
 footer{padding:40px 20px 60px; text-align:center; color:var(--ink-600); font-size:12px}
+.footer-credit{display:block; margin-top:10px; padding-top:10px; border-top:1px solid var(--line); font-size:11px; letter-spacing:.04em; color:var(--ink-600)}
+.footer-credit strong{color:var(--gold); font-family:var(--font-mono); letter-spacing:.08em}
 .spinner{width:22px;height:22px;border-radius:50%; border:3px solid var(--line); border-top-color:var(--wave-red); animation:spin .8s linear infinite; margin:0 auto}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-screen{min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; color:var(--ink-500); font-family:var(--font-mono); font-size:13px}
@@ -352,7 +361,8 @@ footer{padding:40px 20px 60px; text-align:center; color:var(--ink-600); font-siz
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
 import {
   getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-  signOut, onAuthStateChanged, updateProfile, GoogleAuthProvider, signInWithPopup
+  signOut, onAuthStateChanged, updateProfile, GoogleAuthProvider, signInWithPopup,
+  setPersistence, browserLocalPersistence
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 import {
   getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot,
@@ -409,6 +419,9 @@ try{
   fbApp = initializeApp(firebaseConfig);
   auth = getAuth(fbApp);
   db = getFirestore(fbApp);
+  // La sesión se queda guardada en este dispositivo/navegador —
+  // no se vuelve a pedir login mientras no le den "Cerrar sesión".
+  setPersistence(auth, browserLocalPersistence).catch(e=>console.warn('persistence', e));
 }catch(e){ console.error("Firebase no configurado:", e); }
 
 const FIREBASE_READY = firebaseConfig.apiKey !== "REEMPLAZA_CON_TU_API_KEY";
@@ -1071,6 +1084,7 @@ function myProfile(){ return state.users[state.user.uid] || {displayName: state.
 function renderShell(){
   const profile = myProfile();
   const tabs = NAV_ITEMS.concat(state.isAdmin? [{key:'admin', label:'Admin', ico:'⚙️'}] : []);
+  const showInstallBanner = !isStandalone() && !seenSet('qm26_install_dismissed').has('x') && (state.canInstall || isIOS());
   $('#app').innerHTML = `
     <nav class="topnav">
       <div class="topnav-inner">
@@ -1081,14 +1095,29 @@ function renderShell(){
         <div class="nav-avatar" id="nav-avatar-btn" title="${profile.displayName}">${avatarSVG(profile.avatar,36, myGeneralRank())}</div>
       </div>
     </nav>
+    ${showInstallBanner ? `
+    <div class="install-banner" id="install-banner">
+      <span class="install-ico">📲</span>
+      <div class="install-txt">
+        <b>Instala la Quiniela como app</b>
+        <span>${isIOS() && !state.canInstall ? 'Toca compartir 📤 abajo y luego "Agregar a pantalla de inicio"' : 'Acceso directo en tu pantalla, sin abrir el navegador'}</span>
+      </div>
+      ${state.canInstall ? `<button class="btn btn-gold btn-sm" id="install-btn">Instalar</button>` : ''}
+      <button class="install-close" id="install-dismiss" aria-label="Cerrar">✕</button>
+    </div>` : ''}
     <div id="view-root"></div>
-    <footer>Quiniela Mundial 26 · hecha por y para la banda · datos vía football-data.org</footer>
+    <footer>
+      Quiniela Mundial 26 · hecha por y para la banda · datos vía football-data.org
+      <span class="footer-credit">Desarrollado por <strong>OLS NEXUS</strong> · Servicios Digitales</span>
+    </footer>
     <button type="button" class="fab-share" id="fab-share-btn" title="Compartir clasificación del día">
       <span class="fab-ico">📤</span>
     </button>
   `;
   $$('.navtab').forEach(t=>t.addEventListener('click', ()=>{ state.view = t.dataset.view; render(); }));
   $('#nav-avatar-btn').addEventListener('click', ()=>{ state.view='perfil'; render(); });
+  const instBtn = $('#install-btn'); if(instBtn) instBtn.addEventListener('click', triggerInstall);
+  const instDismiss = $('#install-dismiss'); if(instDismiss) instDismiss.addEventListener('click', ()=>{ markSeen('qm26_install_dismissed','x'); render(); });
   $('#fab-share-btn').addEventListener('click', shareTodayToWhatsApp);
 
   const root = $('#view-root');
@@ -1533,6 +1562,7 @@ const state = {
   calFilter:'todos',
   lbTab:'diaria',
   builderDraft:null,
+  canInstall:false,
 };
 let unsubs = [];
 function clearListeners(){ unsubs.forEach(u=>u&&u()); unsubs=[]; }
@@ -2164,9 +2194,87 @@ function render(){
   renderShell();
 }
 
+/* ============================================================
+   PWA — instalable como app real, sin archivos de imagen aparte
+   (el ícono se dibuja en canvas y se inyecta como data URI).
+   ============================================================ */
+function generateAppIcon(size){
+  const c = document.createElement('canvas'); c.width=size; c.height=size;
+  const ctx = c.getContext('2d');
+  const g = ctx.createLinearGradient(0,0,size,size);
+  g.addColorStop(0,'#e8553a'); g.addColorStop(.5,'#2fa968'); g.addColorStop(1,'#3672e0');
+  ctx.fillStyle = '#0d1220'; ctx.fillRect(0,0,size,size);
+  ctx.globalAlpha = .85;
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(size*0.5, size*0.5, size*0.46, 0, Math.PI*2); ctx.fill();
+  ctx.globalAlpha = 1;
+  ctx.font = `${Math.floor(size*0.56)}px sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('⚽', size/2, size*0.56);
+  return c.toDataURL('image/png');
+}
+let deferredInstallPrompt = null;
+function isStandalone(){
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+function isIOS(){ return /iphone|ipad|ipod/i.test(navigator.userAgent); }
+function setupPWA(){
+  try{
+    const icon192 = generateAppIcon(192);
+    const icon512 = generateAppIcon(512);
+    const manifest = {
+      name: CONFIG.APP_NAME, short_name: 'Quiniela 26',
+      start_url: '.', scope: '.', display: 'standalone',
+      background_color: '#080b14', theme_color: '#080b14',
+      icons: [
+        {src:icon192, sizes:'192x192', type:'image/png', purpose:'any maskable'},
+        {src:icon512, sizes:'512x512', type:'image/png', purpose:'any maskable'}
+      ]
+    };
+    const manifestLink = document.createElement('link');
+    manifestLink.rel = 'manifest';
+    manifestLink.href = 'data:application/manifest+json,' + encodeURIComponent(JSON.stringify(manifest));
+    document.head.appendChild(manifestLink);
+
+    const appleIcon = document.createElement('link');
+    appleIcon.rel = 'apple-touch-icon';
+    appleIcon.href = icon192;
+    document.head.appendChild(appleIcon);
+
+    [['apple-mobile-web-app-capable','yes'], ['apple-mobile-web-app-status-bar-style','black-translucent'], ['apple-mobile-web-app-title','Quiniela 26'], ['theme-color','#080b14']]
+      .forEach(([name,content])=>{
+        const m = document.createElement('meta'); m.name=name; m.content=content; document.head.appendChild(m);
+      });
+  }catch(e){ console.warn('setupPWA icon/manifest', e); }
+
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('sw.js').catch(()=>{/* sw.js no subido todavía, no pasa nada */});
+  }
+
+  window.addEventListener('beforeinstallprompt', (e)=>{
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    state.canInstall = true;
+    render();
+  });
+  window.addEventListener('appinstalled', ()=>{
+    deferredInstallPrompt = null; state.canInstall = false;
+    toast('¡App instalada! 🎉'); render();
+  });
+}
+async function triggerInstall(){
+  if(!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt = null;
+  state.canInstall = false;
+  render();
+}
+
 function boot(){
   document.getElementById('app').classList.remove('hidden');
   document.getElementById('loading').classList.add('hidden');
+  setupPWA();
   if(!FIREBASE_READY){ render(); return; }
   onAuthStateChanged(auth, async (user)=>{
     state.user = user;

@@ -30,7 +30,13 @@ tiempo real y GitHub Pages sirve el archivo. Todo gratis.
    Dale el nombre que quieras (ej. `quiniela-mundial-26`) y termina
    el asistente (puedes desactivar Google Analytics, no se usa).
 2. En el menú lateral entra a **Authentication → Comenzar** → pestaña
-   *Sign-in method* → habilita **Correo electrónico/contraseña**.
+   *Sign-in method* → habilita **Correo electrónico/contraseña** y
+   también **Google** (eliges un correo de soporte, cualquiera de
+   los tuyos sirve, y guardas).
+   Si tu sitio ya está en GitHub Pages, ve también a
+   **Authentication → Settings → Authorized domains** y agrega tu
+   dominio `tu-usuario.github.io` (sin esto, el botón "Continuar con
+   Google" da error `unauthorized-domain`).
 3. Entra a **Firestore Database → Crear base de datos** → modo
    **producción** → elige la región más cercana a tu grupo.
 4. En el ícono de engranaje (⚙️) → **Configuración del proyecto** →
@@ -99,8 +105,11 @@ resultados. Dale **Publicar**.
 
 1. Crea un repositorio nuevo en GitHub (puede ser público o privado
    si tienes plan que lo permita con Pages).
-2. Sube `index.html` a la raíz del repo (el `firestore.rules` y este
-   `README.md` puedes subirlos también, no afectan el sitio).
+2. Sube **`index.html` y `sw.js`** a la raíz del repo (los dos en el
+   mismo lugar, junto — `sw.js` es el que hace que la app se pueda
+   "instalar" como app de verdad en el celular/computadora; el
+   `firestore.rules` y este `README.md` puedes subirlos también, no
+   afectan el sitio).
 3. Ve a **Settings → Pages** → en "Source" elige la rama `main` y
    carpeta `/ (root)` → Guardar.
 4. En un par de minutos tu quiniela estará viva en
@@ -143,9 +152,11 @@ alguien empiece a pronosticar, mejor no tocarlos para que sea justo).
 - **Horarios**: para los partidos de fase de grupos, la fecha es la
   oficial de FIFA; la hora exacta de cada partido todavía no estaba
   confirmada equipo-por-equipo al armar esta app, así que se usa una
-  hora aproximada. Corrígela desde el panel Admin si hace falta
-  (botón "Corregir un resultado a mano" también te deja ver/editar
-  cada partido).
+  hora aproximada. Corrígela desde **Admin → "3.5 Corregir fecha y
+  hora de un partido"** (funciona para cualquier partido, no solo
+  eliminatoria).
+- **Cierre de pronósticos**: se cierra `CONFIG.LOCK_MINUTES_BEFORE`
+  minutos antes del silbatazo inicial (30 por default, editable).
 - **Fase eliminatoria**: arranca vacía a propósito (no se inventan
   cruces) — la llenas tú desde el Admin conforme FIFA confirma los
   enfrentamientos reales.
